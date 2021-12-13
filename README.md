@@ -53,3 +53,12 @@ $ hexo server
 | 主机记录 | 记录类型 | 记录值           |
 | -------- | -------- | ---------------- |
 | blog     | CNAME    | yetrun.github.io |
+
+## Hexo 部署时遇到的问题
+
+### GitHub 鉴权失败
+
+老实说这并不是 Hexo 的问题，因为这是 GitHub 鉴权的缘故。在 GitHub 开启 Personal Access Token 后，有可能会出现对此机制不理解导致的鉴权问题。常常出现的情况是：
+
+- 使用的是 GitHub 的帐号密码而不是 PAT.
+- PAT 可能过期了。
