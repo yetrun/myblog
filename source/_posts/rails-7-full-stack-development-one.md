@@ -1,7 +1,9 @@
 ---
-title: Rails 全栈开发：全页使用 Turbo Frame
+title: Rails 7 全栈开发：全页使用 Turbo Frame
 date: 2022-03-04 15:44:00
-tags: Rails
+tags:
+  - Rails
+  - 全栈开发
 ---
 
 ## 需求背景
