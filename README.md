@@ -5,8 +5,11 @@
 ## 准备
 
 ```bash
+# 安装 hexo-cli
 $ yarn global add hexo-cli
-$ yarn
+
+# 这一步一定与奥执行，否则 hexo 全局命令会报错
+$ yarn install
 ```
 
 ## 命令
@@ -29,6 +32,8 @@ $ hexo generate
 ```bash
 $ hexo deploy
 ```
+
+注意：部署成功后使用 `blog.yet.run` 查看更改。如果因为浏览器缓存原因导致更新未实时响应，请删除缓存后再试。
 
 生成后启动服务预览
 
