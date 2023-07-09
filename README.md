@@ -8,7 +8,7 @@
 # 安装 hexo-cli
 $ yarn global add hexo-cli
 
-# 这一步一定与奥执行，否则 hexo 全局命令会报错
+# 这一步一定要执行，否则 hexo 全局命令会报错
 $ yarn install
 ```
 
