@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"yet.run","root":"/","images":"/images","scheme":"Pisces","version":"8.7.1","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<meta name="description" content="这段时间在拿一个小项目练手，力图寻找出一个适合自己的前端框架合集。我们知道 Vue 框架为我们实现了数据绑定和单页应用，让我们能够基于数据状态而不是 DOM 状态开发前端项目。但我们仍然知道，Vue 只是实现了视图层的逻辑而已，围绕 Vue 框架我们依然需要为前端项目的其他层次选择合适的技术方案。 就我个人观念而言，前端项目的以下技术方案至关重要：  视图层的数据绑定，这个可以由 Vue 框架帮我">
+<meta property="og:type" content="article">
+<meta property="og:title" content="前端框架和技术实践汇总">
+<meta property="og:url" content="https://yet.run/2021/12/13/web-frontend-scaffold/index.html">
+<meta property="og:site_name" content="Yet Run 的小站">
+<meta property="og:description" content="这段时间在拿一个小项目练手，力图寻找出一个适合自己的前端框架合集。我们知道 Vue 框架为我们实现了数据绑定和单页应用，让我们能够基于数据状态而不是 DOM 状态开发前端项目。但我们仍然知道，Vue 只是实现了视图层的逻辑而已，围绕 Vue 框架我们依然需要为前端项目的其他层次选择合适的技术方案。 就我个人观念而言，前端项目的以下技术方案至关重要：  视图层的数据绑定，这个可以由 Vue 框架帮我">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-12-13T02:05:21.000Z">
+<meta property="article:modified_time" content="2023-07-09T02:41:07.045Z">
+<meta property="article:author" content="Yet Run">
+<meta property="article:tag" content="Vue">
+<meta property="article:tag" content="前端">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://yet.run/2021/12/13/web-frontend-scaffold/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://yet.run/2021/12/13/web-frontend-scaffold/","path":"2021/12/13/web-frontend-scaffold/","title":"前端框架和技术实践汇总"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>前端框架和技术实践汇总 | Yet Run 的小站</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Yet Run 的小站</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8E%E5%90%8E%E7%AB%AF-API-%E7%9A%84%E4%BA%A4%E4%BA%92"><span class="nav-number">1.</span> <span class="nav-text">与后端 API 的交互</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E5%BC%8F%E5%AE%9A%E4%B9%89"><span class="nav-number">1.1.</span> <span class="nav-text">模式定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E6%98%A0%E5%B0%84"><span class="nav-number">1.2.</span> <span class="nav-text">关系映射</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%BC%93%E5%AD%98"><span class="nav-number">1.3.</span> <span class="nav-text">数据缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90%E7%9A%84%E6%94%AF%E6%8C%81"><span class="nav-number">1.4.</span> <span class="nav-text">多数据源的支持</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E5%8D%95%E9%AA%8C%E8%AF%81"><span class="nav-number">2.</span> <span class="nav-text">表单验证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#js-data-%E7%9A%84%E6%A7%BD%E7%82%B9%E5%92%8C%E5%9D%91"><span class="nav-number">3.</span> <span class="nav-text">js-data 的槽点和坑</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%A2%E5%90%91%E7%9A%84%E4%B8%8D%E6%98%AF%E6%99%AE%E9%80%9A%E7%9A%84-JavaScript-%E5%AF%B9%E8%B1%A1"><span class="nav-number">3.1.</span> <span class="nav-text">面向的不是普通的 JavaScript 对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%83%E6%9C%80%E4%BD%B3%E7%9A%84%E9%80%82%E7%94%A8%E6%A8%A1%E5%BC%8F%E6%98%AF%E6%95%B0%E6%8D%AE%E6%BA%90%E6%8B%A5%E6%9C%89%E4%B8%80%E5%A5%97%E6%A0%87%E5%87%86%E7%9A%84-CURD-%E6%96%B9%E6%B3%95"><span class="nav-number">3.2.</span> <span class="nav-text">它最佳的适用模式是数据源拥有一套标准的 CURD 方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-overview">
+            <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yet Run</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yet.run/2021/12/13/web-frontend-scaffold/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yet Run">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yet Run 的小站">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          前端框架和技术实践汇总
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-12-13 10:05:21" itemprop="dateCreated datePublished" datetime="2021-12-13T10:05:21+08:00">2021-12-13</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-07-09 10:41:07" itemprop="dateModified" datetime="2023-07-09T10:41:07+08:00">2023-07-09</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>这段时间在拿一个小项目练手，力图寻找出一个适合自己的前端框架合集。我们知道 Vue 框架为我们实现了数据绑定和单页应用，让我们能够基于数据状态而不是 DOM 状态开发前端项目。但我们仍然知道，Vue 只是实现了视图层的逻辑而已，围绕 Vue 框架我们依然需要为前端项目的其他层次选择合适的技术方案。</p>
+<p>就我个人观念而言，前端项目的以下技术方案至关重要：</p>
+<ul>
+<li>视图层的数据绑定，这个可以由 Vue 框架帮我们做到</li>
+<li>表单验证</li>
+<li>与后端 API 的交互</li>
+</ul>
+<p>这篇文章将介绍后两者的方案。</p>
+<span id="more"></span>
+
+<h2 id="与后端-API-的交互"><a href="#与后端-API-的交互" class="headerlink" title="与后端 API 的交互"></a>与后端 API 的交互</h2><p>在与后端 API 的交互过程中，我选择了 <a target="_blank" rel="noopener" href="https://www.js-data.io/">js-data</a> 作为我的实现载体。<code>js-data</code> 是一个 JavaScript 框架，起初为 Angular 框架开发，现在能够适配任意框架。当然，在应用于 Vue 的时候还有小小的不适应性，待会我会提到。</p>
+<p>除了可以调用后端提供的 API 之外，<code>js-data</code> 提供了模型层几乎需要的东西，包括：</p>
+<ul>
+<li>模式定义</li>
+<li>关系映射</li>
+<li>数据缓存</li>
+<li>多数据源的支持</li>
+</ul>
+<h3 id="模式定义"><a href="#模式定义" class="headerlink" title="模式定义"></a>模式定义</h3><p>模式定义为模型定义模式，这样约束了模型的字段，同时还可以为其做数据验证。例如我们定义了以下的模式：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> userSchema = <span class="keyword">new</span> Schema(&#123;</span><br><span class="line">  <span class="attr">type</span>: <span class="string">&#x27;object&#x27;</span>,</span><br><span class="line">  <span class="attr">properties</span>: &#123;</span><br><span class="line">    <span class="attr">id</span>: &#123; <span class="attr">type</span>: <span class="string">&#x27;number&#x27;</span> &#125;,</span><br><span class="line">    <span class="attr">name</span>: &#123; <span class="attr">type</span>: <span class="string">&#x27;string&#x27;</span> &#125;,</span><br><span class="line">    <span class="attr">age</span>: &#123; <span class="attr">type</span>: <span class="string">&#x27;number&#x27;</span> &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>我们只能为 <code>user</code> 对象提供 <code>id</code>、<code>name</code>、<code>age</code> 参数，并且如果它们的类型不一致也会报错：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> User(&#123; </span><br><span class="line">  <span class="attr">name</span>: <span class="string">&#x27;James Dean&#x27;</span>, </span><br><span class="line">  <span class="attr">age</span>: <span class="number">18</span>, </span><br><span class="line">  <span class="attr">firstName</span>: <span class="string">&#x27;James&#x27;</span>, <span class="attr">lastName</span>: <span class="string">&#x27;Dean&#x27;</span> <span class="comment">// firstName 和 LastName 将忽略</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="keyword">new</span> User(&#123;</span><br><span class="line">  <span class="attr">name</span>: <span class="string">&#x27;James Dean&#x27;</span>,</span><br><span class="line">  <span class="attr">age</span>: <span class="string">&#x27;18&#x27;</span> <span class="comment">// 报错，字符串类型无法应用到数字类型</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="关系映射"><a href="#关系映射" class="headerlink" title="关系映射"></a>关系映射</h3><p>关系映射是四个东西里我最不在意的，因为它带来的便利仅仅是编码更简洁了（也许是我没有理解透彻，望看官指正）。首先我们可以如下定义两个模型之间的关系：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">store.defineMapper(<span class="string">&#x27;user&#x27;</span>, &#123;</span><br><span class="line">  <span class="attr">relations</span>: &#123;</span><br><span class="line">    <span class="attr">hasMany</span>: &#123;</span><br><span class="line">      <span class="attr">post</span>: &#123;</span><br><span class="line">        <span class="attr">foreignKey</span>: <span class="string">&#x27;userId&#x27;</span>,</span><br><span class="line">        <span class="attr">localField</span>: <span class="string">&#x27;movies&#x27;</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">store.defineMapper(<span class="string">&#x27;movie&#x27;</span>, &#123;</span><br><span class="line">  <span class="attr">relations</span>: &#123;</span><br><span class="line">    <span class="attr">belongsTo</span>: &#123;</span><br><span class="line">      <span class="attr">user</span>: &#123;</span><br><span class="line">        <span class="attr">foreignKey</span>: <span class="string">&#x27;userId&#x27;</span>,</span><br><span class="line">        <span class="attr">localField</span>: <span class="string">&#x27;user&#x27;</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>便利性的体现有很多，这里我仅举两个较容易理解的场景：</p>
+<p><strong>场景一：同时创建</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">await</span> store.create(<span class="string">&#x27;user&#x27;</span>, &#123;</span><br><span class="line">  <span class="attr">name</span>: <span class="string">&#x27;James Dean&#x27;</span>,</span><br><span class="line">  <span class="attr">age</span>: <span class="number">24</span>,</span><br><span class="line">  <span class="attr">movies</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">title</span>: <span class="string">&#x27;East of Eden&#x27;</span>,</span><br><span class="line">      <span class="attr">year</span>: <span class="string">&#x27;1955&#x27;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">title</span>: <span class="string">&#x27;Rebel Without a Cause&#x27;</span>,</span><br><span class="line">      <span class="attr">year</span>: <span class="string">&#x27;1955&#x27;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">title</span>: <span class="string">&#x27;Giant&#x27;</span>,</span><br><span class="line">      <span class="attr">year</span>: <span class="string">&#x27;1956&#x27;</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><strong>场景二：同时返回</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">await</span> store.find(<span class="string">&#x27;user&#x27;</span>, <span class="number">1</span>, &#123; <span class="attr">with</span>: <span class="string">&#x27;movies&#x27;</span> &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>将返回：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">id</span>: <span class="number">1</span>,</span><br><span class="line">  <span class="attr">name</span>: <span class="string">&#x27;James Dean&#x27;</span>,</span><br><span class="line">  <span class="attr">age</span>: <span class="number">24</span>,</span><br><span class="line">  <span class="attr">movies</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">id</span>: <span class="number">11</span>,</span><br><span class="line">      <span class="attr">userId</span>: <span class="number">1</span>,</span><br><span class="line">      <span class="attr">title</span>: <span class="string">&#x27;East of Eden&#x27;</span>,</span><br><span class="line">      <span class="attr">year</span>: <span class="string">&#x27;1955&#x27;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">id</span>: <span class="number">12</span>,</span><br><span class="line">      <span class="attr">userId</span>: <span class="number">1</span>,</span><br><span class="line">      <span class="attr">title</span>: <span class="string">&#x27;Rebel Without a Cause&#x27;</span>,</span><br><span class="line">      <span class="attr">year</span>: <span class="string">&#x27;1955&#x27;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="attr">id</span>: <span class="number">13</span>,</span><br><span class="line">      <span class="attr">userId</span>: <span class="number">1</span>,</span><br><span class="line">      <span class="attr">title</span>: <span class="string">&#x27;Giant&#x27;</span>,</span><br><span class="line">      <span class="attr">year</span>: <span class="string">&#x27;1956&#x27;</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我说过四个东西里最不在意的就是“关系映射”，但这里却用了最大的篇幅介绍这货，这说明关系映射确实是这里面最复杂的（而不是我对它有什么偏赖）。不在意是因为即使没有定义关系，我们仍然可以用别的方式实现（显而易见），只不过是样板代码稍微多了点。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 针对场景一</span></span><br><span class="line"><span class="keyword">const</span> user = <span class="keyword">await</span> store.create(<span class="string">&#x27;user&#x27;</span>, &#123; ... &#125;)</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">const</span> post <span class="keyword">of</span> posts) &#123;</span><br><span class="line">  post.userId = user.id</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">await</span> store.createMany(<span class="string">&#x27;post&#x27;</span>, posts)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 针对场景二</span></span><br><span class="line"><span class="keyword">const</span> user = <span class="keyword">await</span> store.find(<span class="string">&#x27;user&#x27;</span>, <span class="number">1</span>)</span><br><span class="line"><span class="keyword">const</span> posts = <span class="keyword">await</span> store.findAll(<span class="string">&#x27;post&#x27;</span>, &#123; <span class="attr">userId</span>: <span class="number">1</span> &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>说实话，在开发前端项目时，以上写法也许更常见。</p>
+<h3 id="数据缓存"><a href="#数据缓存" class="headerlink" title="数据缓存"></a>数据缓存</h3><p>当我们通过调用后端 API（更一般地，从数据源）取得数据时，再度请求同样的数据会发生什么？例如在列表页里我们已经取得 <code>posts</code> 列表数据，如今点击其中一项进入详情页，此时详情所需的 <code>post</code> 数据已经在 <code>posts</code> 列表内了，我们有必要再请求一遍吗？当然不必要了，可现实是我们往往又重新请求了一遍，完全没有用到缓存机制。</p>
+<p><code>vuex</code> 尝试解决这个问题。但说实话，这种全局状态绑定的模式我是真心喜欢不起来。</p>
+<p><code>js-data</code> 通过缓存机制无感地为我们解决了这个问题。首先，我们在列表页已经请求过一遍数据：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">await</span> findAll(<span class="string">&#x27;post&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>然后点击其中一项进入详情页，请求 <code>post</code> 详情数据依然用同样的调用方式：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">await</span> find(<span class="string">&#x27;post&#x27;</span>, <span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<p>代码没有任何变化，内在逻辑的改变 <code>js-data</code> 悄悄地为我们做了。如果我们是从列表页进入详情页的，会从缓存中拿到数据而不会再向后端发送请求；如果我们是直接进入详情页的，会向后端发送请求。</p>
+<h3 id="多数据源的支持"><a href="#多数据源的支持" class="headerlink" title="多数据源的支持"></a>多数据源的支持</h3><p>数据存储在哪里？数据从哪里获取？对于前端项目来说，大多数不是一个问题：数据当然是通过调用后端 API 获取的。<code>js-data</code> 同时提供多数据源的支持，利用适配器模式，几乎不用修改任何代码就可以将数据源从后端服务器切换为 IndexedDB. 你可以不用，但有时候也许用得上。</p>
+<h2 id="表单验证"><a href="#表单验证" class="headerlink" title="表单验证"></a>表单验证</h2><p>虽然 <code>js-data</code> 为我们提供了数据验证的功能，但数据验证不同于表单验证。表单验证面向的是终端用户，为用户提供即时的反馈。</p>
+<p>基于 Vue 的控件多数提供了表单验证的功能，例如 <code>Element UI</code>、<code>iView</code> 等，如果你用的是这类 UI 组件，直接使用它们的表单验证机制即可。</p>
+<p>有时候表单控件没有提供验证的能力，这时我们可以使用 <a target="_blank" rel="noopener" href="https://github.com/yiminghe/async-validator">async-validator</a> 包配置我们的验证逻辑。</p>
+<h2 id="js-data-的槽点和坑"><a href="#js-data-的槽点和坑" class="headerlink" title="js-data 的槽点和坑"></a><code>js-data</code> 的槽点和坑</h2><p>我们有了 <code>js-data</code>，表示我们有了模型层的封装。我们有了表单验证，为我们解决了一个开发上的大难题。剩下的就交给 Vue 框架和 Vue 生态（例如 <code>vue-router</code>）。有了这三大利器，我想不到还缺少什么（我指的是几乎所有项目都需要的那种东西）。</p>
+<p><code>js-data</code> 占了很大的一个比重，但它不是完美的。就我的实践发现，它主要有两个坑：</p>
+<h3 id="面向的不是普通的-JavaScript-对象"><a href="#面向的不是普通的-JavaScript-对象" class="headerlink" title="面向的不是普通的 JavaScript 对象"></a>面向的不是普通的 JavaScript 对象</h3><p><code>store.findAll</code> 返回不是对象数组，而是 <code>Record</code> 实例数组。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> users = <span class="keyword">await</span> store.findAll(<span class="string">&#x27;user&#x27;</span>)</span><br><span class="line">users[<span class="number">0</span>] <span class="keyword">instanceof</span> Record <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+
+<p>这有什么关系呢？用在 Vue 框架就大大的有关系了，因为 Vue 框架有个明确的建议：只能用于普通的 JavaScript 对象。如果绑定的不是一个纯粹的 JavaScript 对象，而是一个类的实例，有可能遇到潜在的问题。不幸的是，<code>js-data</code> 正好中枪了。</p>
+<p>解决的办法是：将 Record 转化为普通的对象。Record 提供了 <code>toJSON</code> 方法，它将会转化为普通的对象：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> users = <span class="keyword">await</span> store.findAll(<span class="string">&#x27;user&#x27;</span>)</span><br><span class="line">users = users.map(<span class="function"><span class="params">user</span> =&gt;</span> user.toJSON())</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> user = <span class="keyword">await</span> store.find(<span class="string">&#x27;user&#x27;</span>, <span class="number">1</span>)</span><br><span class="line">user = user.toJSON()</span><br></pre></td></tr></table></figure>
+
+<p>Record 会提供额外的便利的方法，有时候我们会用到它。况且每次请求时调用 <code>toJSON</code> 方法转一道不觉得繁琐吗？所以我在实践中会采用折衷的办法，有时候使用 Record，有时候使用普通的对象。</p>
+<p>那么何时使用 Record，何时又要转化为普通的对象呢？其窍门在于，我们何时用何种方式触发 Vue 的响应式。因此，我得出的结论是：在仅展示的页面使用 Record，在数据会被修改的地方使用普通的 JavaScript 对象。</p>
+<p>列表页是一个仅展示的页面，它在初始化时触发响应式：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> mounted () &#123;</span><br><span class="line">  <span class="keyword">await</span> fetchAll()</span><br><span class="line">&#125;,</span><br><span class="line"><span class="attr">methods</span>: &#123;</span><br><span class="line">  <span class="keyword">async</span> fetchAll () &#123;</span><br><span class="line">    <span class="keyword">const</span> users = <span class="keyword">await</span> store.findAll(<span class="string">&#x27;user&#x27;</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// ...也许你想要为 users 做些别的事</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 直接赋值给 `userRecords` 属性。由于 `userRecords` 属性被赋予了另一个值，所以总能触发响应式。</span></span><br><span class="line">    <span class="comment">// 带上 `Records` 后缀是我的一个命名习惯，提醒我这里是一个 `js-data` 的 Record 对象。</span></span><br><span class="line">    <span class="built_in">this</span>.userRecords = users </span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而在编辑页模型的内部状态会被修改，不适用于 Record：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">  &lt;form&gt;</span><br><span class="line">    &lt;!-- 这里会触发 user 内部状态改变，如果 Record 实例，则无法触发响应式 --&gt;</span><br><span class="line">    &lt;input v-model=&quot;user.name&quot; /&gt;</span><br><span class="line">    &lt;input v-model=&quot;user.age&quot; /&gt;</span><br><span class="line">  &lt;/form&gt;</span><br><span class="line">&lt;/template&gt;</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line">export default &#123;</span><br><span class="line">  data () &#123;</span><br><span class="line">    return &#123;</span><br><span class="line">      user: &#123;&#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  async mounted () &#123;</span><br><span class="line">    await fetchUser()</span><br><span class="line">  &#125;,</span><br><span class="line">  methods: &#123;</span><br><span class="line">    async fetchUser () &#123;</span><br><span class="line">      const userRecord = await store.find(&#x27;user&#x27;, 1)</span><br><span class="line">      this.user = userRecord.toJSON()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="它最佳的适用模式是数据源拥有一套标准的-CURD-方法"><a href="#它最佳的适用模式是数据源拥有一套标准的-CURD-方法" class="headerlink" title="它最佳的适用模式是数据源拥有一套标准的 CURD 方法"></a>它最佳的适用模式是数据源拥有一套标准的 CURD 方法</h3><p>针对数据源的操作无非是 Create、Update、Retrieve、Delete 四种模式。无论是关系型数据库、文档型数据库、Redis、ElasticSearch、localStorage、WebSQL、IndexedDB 等，它们都有一套标准的 CURD 方法，为它们编写适配器是一种统一的工作。这也是 <code>js-data</code> 也能应用于后端的原因。</p>
+<p>而前端最常面对的是后端提供的 API，它没有统一的 CURD 实现标准。试想一下，后端 API 的风格千奇百怪，尤其是中国这个特殊的大环境下。所以，不同的项目有不同的实现标准，甚至同一个项目的不同模块都有不同的实现标准，这是我们在应用 <code>js-data</code> 最大的难题。</p>
+<p>另一个方面，由于后端提供的 API 是面向业务逻辑的，它提供的接口未闭会完全参考 CURD 的模式。例如，有一个审核的接口，它可能定义为 <code>/posts/&#123;id&#125;/verify</code>，可以传递一个 <code>value</code> 参数为 <code>true</code> 或 <code>false</code>，以使得这篇博文审核被通过或被拒绝：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -XPOST /posts/1/verify -d <span class="string">&#x27;&#123; value: true &#125;&#x27;</span> <span class="comment"># 审核通过</span></span><br><span class="line">curl -XPOST /posts/1/verify -d <span class="string">&#x27;&#123; value: false &#125;&#x27;</span> <span class="comment"># 审核不通过</span></span><br></pre></td></tr></table></figure>
+
+<p>它的主要作用是修改 <code>post</code> 资源的 <code>verified</code> 字段，也许会有其他附加的动作如添加审核人和审核时间等。无论如何，它已经被设计为 Restful 资源下的一个动作了，关于这一点，<code>js-data</code> 的扩展能力及其之低。</p>
+<p>我在前面说过，我做了一个小项目实验 <code>js-data</code> 的特性，由于都是标准的 CURD 方法，并且数据源是本地的 IndexedDB，所以也就没有遇到这个潜在的问题了。但我隐隐觉得这可能是应用 <code>js-data</code> 最力不从心的地方，后续实践进一步验证。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总结一下前端项目如何实践：</p>
+<ul>
+<li>适用 Vue 作为视图层数据状态的绑定和单页逻辑。</li>
+<li>添加表单验证，它们或是 Vue 组件自带的功能，或用 <code>async-validator</code> 库自行实现一套。</li>
+<li>适用 <code>js-data</code> 作为与数据源的交互，以及定制模型层。</li>
+</ul>
+<p>我们还提到 <code>js-data</code> 并不是完美的，但是它提供的几个特性如模式定义、数据缓存是我们在开发中必不可少的。并没有任何东西是完美的，Vue 也有很多不完美的地方，但开发的任务却是不容等待。在我们的认知局限下选择最适合我们的方式，才是当务之机。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Vue/" rel="tag"># Vue</a>
+              <a href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag"># 前端</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/11/02/vue-list-page/" rel="prev" title="Vue 数据列表页的写法参考">
+                  <i class="fa fa-chevron-left"></i> Vue 数据列表页的写法参考
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/03/04/rails-7-full-stack-development-one/" rel="next" title="Rails 7 全栈开发：全页使用 Turbo Frame">
+                  Rails 7 全栈开发：全页使用 Turbo Frame <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yet Run</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"yetrun","repo":"yetrun.github.io","client_id":"a386f9dc0f5fe109f2d1","client_secret":"e2a830c7febee5b141b227032f95161f738be604","admin_user":"yetrun","distraction_free_mode":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","js":{"url":"https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.min.js","integrity":"sha256-Pmj85ojLaPOWwRtlMJwmezB/Qg8BzvJp5eTzvXaYAfA="},"path_md5":"d4c677aecb46addc2850df497fddabe2"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>

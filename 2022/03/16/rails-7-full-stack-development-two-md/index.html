@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"yet.run","root":"/","images":"/images","scheme":"Pisces","version":"8.7.1","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<meta name="description" content="主流的开放方式分为两种：以前端为主的前后端分离模式和以后端为主的全栈开发模式。Rails（全称 Ruby on Rails）是一个全栈开发框架，自然要用 Ruby 语言做更多的事。我在应用 Rails 实践的过程中，发现它的开发模式并不是有多种，只有一种。这一种，就是“基于模型验证的方式”。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Rails 7 全栈开发：基于模型验证的的方式">
+<meta property="og:url" content="https://yet.run/2022/03/16/rails-7-full-stack-development-two-md/index.html">
+<meta property="og:site_name" content="Yet Run 的小站">
+<meta property="og:description" content="主流的开放方式分为两种：以前端为主的前后端分离模式和以后端为主的全栈开发模式。Rails（全称 Ruby on Rails）是一个全栈开发框架，自然要用 Ruby 语言做更多的事。我在应用 Rails 实践的过程中，发现它的开发模式并不是有多种，只有一种。这一种，就是“基于模型验证的方式”。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-03-16T05:57:51.000Z">
+<meta property="article:modified_time" content="2023-07-09T02:41:07.041Z">
+<meta property="article:author" content="Yet Run">
+<meta property="article:tag" content="Rails">
+<meta property="article:tag" content="全栈开发">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://yet.run/2022/03/16/rails-7-full-stack-development-two-md/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://yet.run/2022/03/16/rails-7-full-stack-development-two-md/","path":"2022/03/16/rails-7-full-stack-development-two-md/","title":"Rails 7 全栈开发：基于模型验证的的方式"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Rails 7 全栈开发：基于模型验证的的方式 | Yet Run 的小站</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Yet Run 的小站</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Rails-%E7%9A%84%E8%A1%A8%E5%8D%95%E6%8F%90%E4%BA%A4%E6%A1%88%E4%BE%8B"><span class="nav-number">1.</span> <span class="nav-text">Rails 的表单提交案例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E6%A8%A1%E5%9E%8B%E9%AA%8C%E8%AF%81%E7%9A%84%E6%96%B9%E5%BC%8F"><span class="nav-number">2.</span> <span class="nav-text">基于模型验证的方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Restful-%E6%A1%86%E6%9E%B6"><span class="nav-number">2.1.</span> <span class="nav-text">Restful 框架</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%86%E5%AF%B9%E8%B1%A1%E6%98%A0%E5%B0%84%E4%B8%BA%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.2.</span> <span class="nav-text">将对象映射为模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A1%88%E4%BE%8B%E4%B8%80%EF%BC%9A%E9%87%8D%E7%BD%AE%E5%AF%86%E7%A0%81"><span class="nav-number">3.</span> <span class="nav-text">案例一：重置密码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A1%88%E4%BE%8B%E4%BA%8C%EF%BC%9A%E5%8F%91%E9%80%81%E9%AA%8C%E8%AF%81%E7%A0%81"><span class="nav-number">4.</span> <span class="nav-text">案例二：发送验证码</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-overview">
+            <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yet Run</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yet.run/2022/03/16/rails-7-full-stack-development-two-md/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yet Run">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yet Run 的小站">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Rails 7 全栈开发：基于模型验证的的方式
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-03-16 13:57:51" itemprop="dateCreated datePublished" datetime="2022-03-16T13:57:51+08:00">2022-03-16</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-07-09 10:41:07" itemprop="dateModified" datetime="2023-07-09T10:41:07+08:00">2023-07-09</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>主流的开放方式分为两种：以前端为主的前后端分离模式和以后端为主的全栈开发模式。Rails（全称 Ruby on Rails）是一个全栈开发框架，自然要用 Ruby 语言做更多的事。我在应用 Rails 实践的过程中，发现它的开发模式并不是有多种，只有一种。这一种，就是“基于模型验证的方式”。</p>
+<span id="more"></span>
+
+<h2 id="Rails-的表单提交案例"><a href="#Rails-的表单提交案例" class="headerlink" title="Rails 的表单提交案例"></a>Rails 的表单提交案例</h2><p><em>以一个基本案例入手，解释何谓“基于模型验证的方式”。</em></p>
+<p>以创建和更新用户表单为例：</p>
+<figure class="highlight erb"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="xml">&lt;%=</span><span class="ruby"> form_with <span class="variable">@user</span> <span class="keyword">do</span> <span class="params">|form|</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> form.label <span class="symbol">:name</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> form.text_field <span class="symbol">:name</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">    &lt;%</span><span class="ruby"> <span class="keyword">unless</span> <span class="variable">@user</span>.errors[<span class="symbol">:name</span>].empty? </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>&lt;%=</span><span class="ruby"> <span class="variable">@user</span>.errors[<span class="symbol">:name</span>].join(<span class="string">&#x27;, &#x27;</span>)&lt;<span class="regexp">/p&gt;</span></span></span><br><span class="line"><span class="regexp"><span class="ruby">    &lt;% end </span></span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"><span class="regexp"> form.label :age </span></span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"><span class="regexp"> form.text_field :age </span></span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">    &lt;%</span><span class="ruby"><span class="regexp"> unless @user.errors[:age].empty? </span></span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">      <span class="tag">&lt;<span class="name">p</span>&gt;</span>&lt;%=</span><span class="ruby"><span class="regexp"> @user.errors[:age].join(&#x27;, &#x27;)&lt;/p</span>&gt;</span></span><br><span class="line"><span class="ruby">    &lt;% <span class="keyword">end</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">  &lt;%=</span><span class="ruby"> form.submit </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">&lt;%</span><span class="ruby"> <span class="keyword">end</span> </span><span class="xml">%&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这是一个集创建、更新、表单错误显示等多重要素于一体的代码。对于 Rails 开发者来说，这种模式是自然的、基本的。</p>
+<p>用这种方式写代码有多种好处：</p>
+<ol>
+<li>不用写任何 JavaScript 代码；</li>
+<li>考虑到后端验证是必不可少的，所以即使保留前端验证也不可忽略后端验证。</li>
+</ol>
+<p>以上两种从必要性和充分性两点考虑了这种写法的必要性和唯一性。这对 Rails 开发来说是自然的。</p>
+<p>考虑到表单验证使用的频繁性，添加一个帮助方法，它可以将表单代码简化为如下形式：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&lt;%= form_with <span class="variable">@user</span> <span class="keyword">do</span> <span class="params">|form|</span> %&gt;</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">    &lt;%= form.label <span class="symbol">:name</span> %&gt;</span><br><span class="line">    &lt;%= form.text_field <span class="symbol">:name</span> %&gt;</span><br><span class="line">    &lt;%= report_field_error(<span class="variable">@user</span>, <span class="symbol">:name</span>) %&gt;</span><br><span class="line">  &lt;<span class="regexp">/div&gt;</span></span><br><span class="line"><span class="regexp"></span></span><br><span class="line"><span class="regexp">  &lt;div&gt;</span></span><br><span class="line"><span class="regexp">    &lt;%= form.label :age %&gt;</span></span><br><span class="line"><span class="regexp">    &lt;%= form.text_field :age %&gt;</span></span><br><span class="line"><span class="regexp">    &lt;%= report_field_error(@user, :age) %&gt;</span></span><br><span class="line"><span class="regexp">  &lt;/div</span>&gt;</span><br><span class="line"></span><br><span class="line">  &lt;%= form.submit %&gt;</span><br><span class="line">&lt;% <span class="keyword">end</span> %&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="基于模型验证的方式"><a href="#基于模型验证的方式" class="headerlink" title="基于模型验证的方式"></a>基于模型验证的方式</h2><p>这里说出了一个新的概念，将一切接口应用为模型验证的方式。为什么要这么做呢？说出两个优点：</p>
+<ol>
+<li>既然基于模型验证的方式是优越的，那么一切接口借用这种方式实现，就可获得表单验证带来的便利；</li>
+<li>我们可以将应用逻辑放在模型中，这样接口内的逻辑比较单一，便于我们的测试分离。</li>
+</ol>
+<p>OK. 既然如此，那么我必须要解决应用这种方式的难点，毕竟很多同学可能有点疑惑。这里必须要强调实现和理念上的两点：</p>
+<h3 id="Restful-框架"><a href="#Restful-框架" class="headerlink" title="Restful 框架"></a>Restful 框架</h3><p>我们知道 Rails 是一个 Restful 框架。Restful 简单说下：将一切对象看成资源，针对资源的操作仅包括创建、删除、更新、查阅，分别对应 GET、POST、PUT、PATCH、DELETE 方法（汉字和英文顺序不是一一对应的）。所以，我们要做的第一条，是将一切对象看成资源。</p>
+<h3 id="将对象映射为模型"><a href="#将对象映射为模型" class="headerlink" title="将对象映射为模型"></a>将对象映射为模型</h3><p>Rails 可以天然地将对象映射为模型，并对模型应用验证方法。详见 ActiveModel.</p>
+<h2 id="案例一：重置密码"><a href="#案例一：重置密码" class="headerlink" title="案例一：重置密码"></a>案例一：重置密码</h2><p>如今要做一个重置密码的功能，它的表单形式大致是（页面原型靠自己想象）：</p>
+<figure class="highlight erb"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="xml">&lt;%=</span><span class="ruby"> form_with <span class="keyword">do</span> <span class="params">|form|</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> form.label <span class="symbol">:email</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> form.text_field <span class="symbol">:email</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> form.label <span class="symbol">:new_password</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> form.text_field <span class="symbol">:new_password</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> form.label <span class="symbol">:verification_code</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> form.text_field <span class="symbol">:verification_code</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">  &lt;%=</span><span class="ruby"> form.submit </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">&lt;%</span><span class="ruby"> <span class="keyword">end</span> </span><span class="xml">%&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这个时候，我们要将“重置密码”这个动作视为一个资源，将表单资源映射为 <code>GET /reset_passwords/new</code>，将提交动作映射为 <code>POST /reset_passwords</code>：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># config/routes.rb</span></span><br><span class="line">resources <span class="symbol">:rest_passwords</span></span><br></pre></td></tr></table></figure>
+
+<p>如此，上面的表单我们可以改写成：</p>
+<figure class="highlight erb"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="xml">&lt;%=</span><span class="ruby"> form_with <span class="variable">@reset_password</span> <span class="keyword">do</span> <span class="params">|form|</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> form.label <span class="symbol">:email</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> form.text_field <span class="symbol">:email</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> report_field_error(<span class="variable">@reset_password</span>, <span class="symbol">:email</span>) </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> form.label <span class="symbol">:new_password</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> form.text_field <span class="symbol">:new_password</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> report_field_error(<span class="variable">@reset_password</span>, <span class="symbol">:new_password</span>) </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> form.label <span class="symbol">:verification_code</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> form.text_field <span class="symbol">:verification_code</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> report_field_error(<span class="variable">@reset_password</span>, <span class="symbol">:verification_code</span>) </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">  &lt;%=</span><span class="ruby"> form.submit </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">&lt;%</span><span class="ruby"> <span class="keyword">end</span> </span><span class="xml">%&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>注意是添加了数据验证和 <code>@reset_password</code> 变量。</p>
+<p>这时候，对应的 Controller 只要写成：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ResetPasswordsController</span> &lt; ApplicationController</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">new</span></span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">    </span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">create</span></span></span><br><span class="line">    <span class="variable">@reset_password</span> = ResetPassword.new(reset_password_params)</span><br><span class="line">    <span class="keyword">if</span> <span class="variable">@reset_password</span>.reset_password</span><br><span class="line">      redirect_to logins_path</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      render <span class="symbol">:new</span>, <span class="symbol">status:</span> <span class="symbol">:unprocessable_entity</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>而最最核心的 ResetPassword 类，大致如下：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ResetPassword</span></span></span><br><span class="line">  <span class="keyword">include</span> ActiveModel::API</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">attr_accessor</span> <span class="symbol">:email</span>, <span class="symbol">:new_password</span>, <span class="symbol">:verification_code</span></span><br><span class="line">    </span><br><span class="line">  validates_presence_of <span class="symbol">:email</span>, <span class="symbol">:new_password</span>, <span class="symbol">:verification_code</span></span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">reset_password</span></span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span> <span class="keyword">unless</span> valid?</span><br><span class="line">    </span><br><span class="line">    user = User.find_by(<span class="symbol">email:</span> email)</span><br><span class="line">    <span class="keyword">unless</span> user</span><br><span class="line">      errors.add <span class="symbol">:email</span>, <span class="symbol">:not_exist</span>, <span class="symbol">message:</span> <span class="string">&#x27;邮箱不存在&#x27;</span></span><br><span class="line">      <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">      </span><br><span class="line">    <span class="keyword">unless</span> user.verification_code == verification_code</span><br><span class="line">      errors.add <span class="symbol">:verification_code</span>, <span class="symbol">:not_matched</span>, <span class="symbol">message:</span> <span class="string">&#x27;验证码不匹配&#x27;</span></span><br><span class="line">      <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">      </span><br><span class="line">    user.update(<span class="symbol">verification_code:</span> <span class="literal">true</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="案例二：发送验证码"><a href="#案例二：发送验证码" class="headerlink" title="案例二：发送验证码"></a>案例二：发送验证码</h2><p>现在基于以上案例添加一个发送验证码的功能。按照 Rails 只有一种实现方式的原则，我们首先为发送验证码添加一个表单：</p>
+<figure class="highlight erb"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="xml">&lt;%=</span><span class="ruby"> form_with <span class="variable">@reset_password</span> <span class="keyword">do</span> <span class="params">|form|</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">  <span class="comment">&lt;!-- email 和 new_password 的表单控件略 --&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> form.label <span class="symbol">:verification_code</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml">      &lt;%=</span><span class="ruby"> form.text_field <span class="symbol">:verification_code</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">      &lt;%=</span><span class="ruby"> form_with <span class="variable">@send_verification_code</span> <span class="keyword">do</span> <span class="params">|form|</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">        &lt;%=</span><span class="ruby"> form.text_field <span class="symbol">:email</span>, <span class="symbol">hidden:</span> <span class="literal">true</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">        &lt;%=</span><span class="ruby"> form.submit </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">      &lt;%=</span><span class="ruby"> <span class="keyword">end</span> </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml">    &lt;%=</span><span class="ruby"> report_field_error(<span class="variable">@reset_password</span>, <span class="symbol">:verification_code</span>) </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span><br><span class="line"><span class="xml"></span></span><br><span class="line"><span class="xml">  &lt;%=</span><span class="ruby"> form.submit </span><span class="xml">%&gt;</span></span><br><span class="line"><span class="xml">&lt;%</span><span class="ruby"> <span class="keyword">end</span> </span><span class="xml">%&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>说明：我在表单内嵌套一个表单。由于放松验证码时要传递 <code>email</code> 参数，所以要添加一个隐藏的 <code>email</code> 控件。可通过 Stimulus 让其与外层的 <code>email</code> 控件保持一致。（这段代码省略）</p>
+<p>但实践中这种方法是<strong>行不通</strong>的，因为根据 HTML5 的标准，表单内不准内嵌表单。（这操蛋的标准）</p>
+<p>思来想去还是决定通过 JavaScript 向后端发送请求，请求返回一个 Turbo Stream 模板，这样可以复用利用 Turbo Stream 更新视图的逻辑（不用自己在写代码了）。</p>
+<p>怎么做到呢？收到响应后，关键在于调用 <code>Turbo.renderStreamMessage(html)</code>.</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Rails/" rel="tag"># Rails</a>
+              <a href="/tags/%E5%85%A8%E6%A0%88%E5%BC%80%E5%8F%91/" rel="tag"># 全栈开发</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/03/04/rails-7-full-stack-development-one/" rel="prev" title="Rails 7 全栈开发：全页使用 Turbo Frame">
+                  <i class="fa fa-chevron-left"></i> Rails 7 全栈开发：全页使用 Turbo Frame
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/08/18/todo-annotations/" rel="next" title="常用的 TODO 标记">
+                  常用的 TODO 标记 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yet Run</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"yetrun","repo":"yetrun.github.io","client_id":"a386f9dc0f5fe109f2d1","client_secret":"e2a830c7febee5b141b227032f95161f738be604","admin_user":"yetrun","distraction_free_mode":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","js":{"url":"https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.min.js","integrity":"sha256-Pmj85ojLaPOWwRtlMJwmezB/Qg8BzvJp5eTzvXaYAfA="},"path_md5":"0cc1361dc238de3d1dd2e7e2317d3084"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>

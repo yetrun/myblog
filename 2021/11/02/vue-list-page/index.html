@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"yet.run","root":"/","images":"/images","scheme":"Pisces","version":"8.7.1","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<meta name="description" content="常规的管理系统开发（以及部分用户端原型的开发），涉及到列表页、详情页、编辑页、新建页。据我多年的开发经验获悉，每一种类型的页面，开发者都应有一套固定的写法。这一篇讲列表页的固定写法。 列表页，如果考虑功能齐全，应包括：  展示一个数据列表 支持若干筛选项目 支持分页浏览 支持全文搜索 支持排序  本文分两个阶段介绍，第二阶段相比第一阶段增加了 vue-router 的考虑。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vue 数据列表页的写法参考">
+<meta property="og:url" content="https://yet.run/2021/11/02/vue-list-page/index.html">
+<meta property="og:site_name" content="Yet Run 的小站">
+<meta property="og:description" content="常规的管理系统开发（以及部分用户端原型的开发），涉及到列表页、详情页、编辑页、新建页。据我多年的开发经验获悉，每一种类型的页面，开发者都应有一套固定的写法。这一篇讲列表页的固定写法。 列表页，如果考虑功能齐全，应包括：  展示一个数据列表 支持若干筛选项目 支持分页浏览 支持全文搜索 支持排序  本文分两个阶段介绍，第二阶段相比第一阶段增加了 vue-router 的考虑。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-11-02T03:52:54.000Z">
+<meta property="article:modified_time" content="2023-07-09T02:41:07.045Z">
+<meta property="article:author" content="Yet Run">
+<meta property="article:tag" content="vue">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://yet.run/2021/11/02/vue-list-page/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://yet.run/2021/11/02/vue-list-page/","path":"2021/11/02/vue-list-page/","title":"Vue 数据列表页的写法参考"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Vue 数据列表页的写法参考 | Yet Run 的小站</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Yet Run 的小站</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E9%98%B6%E6%AE%B5"><span class="nav-number">1.</span> <span class="nav-text">第一阶段</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E6%95%B0%E6%8D%AE%E6%A0%BC%E5%BC%8F"><span class="nav-number">1.1.</span> <span class="nav-text">设计数据格式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1-UI-%E5%B8%83%E5%B1%80"><span class="nav-number">1.2.</span> <span class="nav-text">设计 UI 布局</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%84%E4%BB%B6%E5%8A%A0%E8%BD%BD%E6%97%B6%E5%88%9D%E5%A7%8B%E5%8C%96%E6%95%B0%E6%8D%AE"><span class="nav-number">1.3.</span> <span class="nav-text">组件加载时初始化数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%93%8D%E5%BA%94%E7%AD%9B%E9%80%89%E5%92%8C%E5%88%86%E9%A1%B5%E5%8F%98%E5%8C%96"><span class="nav-number">1.4.</span> <span class="nav-text">响应筛选和分页变化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E9%98%B6%E6%AE%B5%E6%80%BB%E7%BB%93"><span class="nav-number">1.5.</span> <span class="nav-text">第一阶段总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E9%98%B6%E6%AE%B5"><span class="nav-number">2.</span> <span class="nav-text">第二阶段</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%B4%E6%8A%A4%E8%B7%AF%E7%94%B1%E5%8F%82%E6%95%B0%E5%92%8C%E7%BB%84%E4%BB%B6%E5%86%85%E6%95%B0%E6%8D%AE%E7%9A%84%E7%8A%B6%E4%BD%93%E4%B8%80%E8%87%B4%E6%80%A7"><span class="nav-number">2.1.</span> <span class="nav-text">维护路由参数和组件内数据的状体一致性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B0%83%E6%95%B4%E7%9B%91%E5%90%AC%E7%9A%84%E6%97%B6%E6%9C%BA"><span class="nav-number">2.2.</span> <span class="nav-text">调整监听的时机</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81"><span class="nav-number">3.</span> <span class="nav-text">完整代码</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-overview">
+            <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yet Run</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yet.run/2021/11/02/vue-list-page/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yet Run">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yet Run 的小站">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Vue 数据列表页的写法参考
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-11-02 11:52:54" itemprop="dateCreated datePublished" datetime="2021-11-02T11:52:54+08:00">2021-11-02</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-07-09 10:41:07" itemprop="dateModified" datetime="2023-07-09T10:41:07+08:00">2023-07-09</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>常规的管理系统开发（以及部分用户端原型的开发），涉及到列表页、详情页、编辑页、新建页。据我多年的开发经验获悉，每一种类型的页面，开发者都应有一套固定的写法。这一篇讲列表页的固定写法。</p>
+<p>列表页，如果考虑功能齐全，应包括：</p>
+<ul>
+<li>展示一个数据列表</li>
+<li>支持若干筛选项目</li>
+<li>支持分页浏览</li>
+<li>支持全文搜索</li>
+<li>支持排序</li>
+</ul>
+<p>本文分两个阶段介绍，第二阶段相比第一阶段增加了 vue-router 的考虑。</p>
+<span id="more"></span>
+
+<h2 id="第一阶段"><a href="#第一阶段" class="headerlink" title="第一阶段"></a>第一阶段</h2><h3 id="设计数据格式"><a href="#设计数据格式" class="headerlink" title="设计数据格式"></a>设计数据格式</h3><p>用 Vue 开发组件，应首先着眼于数据。对于满足以上功能的列表页来说，可设计如下的数据结构：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">data () &#123;</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    <span class="comment">// 展示给列表的数据</span></span><br><span class="line">    <span class="attr">users</span>: [],</span><br><span class="line">    <span class="comment">// 分页相关</span></span><br><span class="line">    <span class="attr">pagination</span>: &#123;</span><br><span class="line">      <span class="attr">current</span>: <span class="number">1</span>,</span><br><span class="line">      <span class="attr">pageSize</span>: <span class="number">10</span>,</span><br><span class="line">      <span class="attr">total</span>: <span class="number">0</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// 筛选相关</span></span><br><span class="line">    <span class="attr">filters</span>: &#123;</span><br><span class="line">      <span class="comment">// 根据名字筛选</span></span><br><span class="line">      <span class="attr">name</span>: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">      <span class="comment">// 根据手机号筛选</span></span><br><span class="line">      <span class="attr">mobile</span>: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">      <span class="comment">// 其他的不再一一展示</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于我不喜欢为自己的数据取一些通用的名字，诸如 <code>data</code>、<code>records</code> 之类，所以这里我列出了一个业务相关的数据样例。这是一个展示用户列表的数据结构，也是我最喜欢用的一个示例。</p>
+<h3 id="设计-UI-布局"><a href="#设计-UI-布局" class="headerlink" title="设计 UI 布局"></a>设计 UI 布局</h3><p>接下来应设计 UI 布局。用户列表类的数据比较适合用表格展示，这里我使用 Element UI 的 Table 组件展示用户列表数据，其他人可根据实际需要自行选择其他组件。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">    &lt;!-- 筛选项目表单 --&gt;</span><br><span class="line">    &lt;el-form :inline=&quot;true&quot;&gt;</span><br><span class="line">      &lt;el-form-item label=&quot;姓名&quot;&gt;</span><br><span class="line">        &lt;el-input v-model=&quot;filters.name&quot; placeholder=&quot;输入姓名筛选&quot;&gt;&lt;/el-input&gt;</span><br><span class="line">      &lt;/el-form-item&gt;</span><br><span class="line">      &lt;el-form-item label=&quot;手机号&quot;&gt;</span><br><span class="line">        &lt;el-input v-model=&quot;filters.mobile&quot; placeholder=&quot;输入手机号筛选&quot;&gt;&lt;/el-input&gt;</span><br><span class="line">      &lt;/el-form-item&gt;</span><br><span class="line">    &lt;/el-form&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!-- 展示用户数据列表 --&gt;</span><br><span class="line">    &lt;el-table :data=&quot;users&quot; style=&quot;width: 100%&quot;&gt;</span><br><span class="line">      &lt;el-table-column</span><br><span class="line">        prop=&quot;name&quot;</span><br><span class="line">        label=&quot;姓名&quot;</span><br><span class="line">        width=&quot;180&quot;&gt;</span><br><span class="line">      &lt;/el-table-column&gt;</span><br><span class="line">      &lt;el-table-column</span><br><span class="line">        prop=&quot;mobile&quot;</span><br><span class="line">        label=&quot;手机号&quot;</span><br><span class="line">        width=&quot;180&quot;&gt;</span><br><span class="line">      &lt;/el-table-column&gt;</span><br><span class="line">      &lt;el-table-column</span><br><span class="line">        prop=&quot;address&quot;</span><br><span class="line">        label=&quot;地址&quot;&gt;</span><br><span class="line">      &lt;/el-table-column&gt;</span><br><span class="line">      &lt;el-table-column</span><br><span class="line">        prop=&quot;date&quot;</span><br><span class="line">        label=&quot;登记日期&quot;</span><br><span class="line">        width=&quot;180&quot;&gt;</span><br><span class="line">      &lt;/el-table-column&gt;</span><br><span class="line">    &lt;/el-table&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!-- 控制分页的组件 --&gt;</span><br><span class="line">    &lt;el-pagination</span><br><span class="line">      layout=&quot;prev, pager, next&quot;</span><br><span class="line">      :currentPage=&quot;pagination.current&quot;</span><br><span class="line">      :pageSize=&quot;pagination.pageSize&quot;</span><br><span class="line">      :total=&quot;pagination.total&quot;</span><br><span class="line">      @current-change=&quot;pagination.current = $event&quot;</span><br><span class="line">    &gt;&lt;/el-pagination&gt;</span><br><span class="line">  &lt;/div&gt;</span><br><span class="line">&lt;/template&gt;</span><br></pre></td></tr></table></figure>
+
+<p>这里有如下几个注意要点：</p>
+<ul>
+<li>表单的筛选项是直接和 filters 内的属性双向绑定的。注意这里并没有一个查询按钮，假设需求是边输入边执行筛选的实时效果。</li>
+<li>数据列表直接使用 Element UI 的 Table 组件，注意其中绑定的数据是 <code>users</code>.</li>
+<li>注意分页组件的数据绑定。</li>
+</ul>
+<h3 id="组件加载时初始化数据"><a href="#组件加载时初始化数据" class="headerlink" title="组件加载时初始化数据"></a>组件加载时初始化数据</h3><p>数据一开始是个空数组，这样什么也不会展示。需要在组件初始化时加载数据，一般是从远端 API 请求数据。本文使用模拟的 <code>fetchUsers</code> 函数表示从远端 API 获取数据的方法，它接收一个可选的查询参数：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">fetchUsers</span> (<span class="params">params = &#123;&#125;</span>)</span></span><br></pre></td></tr></table></figure>
+
+<p>注意，组件初始化要用到 <code>mounted</code> 钩子：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mounted () &#123;</span><br><span class="line">  <span class="keyword">const</span> response = <span class="keyword">await</span> fetchUsers()</span><br><span class="line"></span><br><span class="line">  <span class="built_in">this</span>.users = response.data.users</span><br><span class="line">  <span class="built_in">this</span>.pagination.total = response.data.total</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="响应筛选和分页变化"><a href="#响应筛选和分页变化" class="headerlink" title="响应筛选和分页变化"></a>响应筛选和分页变化</h3><p>响应筛选和分页的逻辑，我们还是要从数据的视角出发。这里的做法是，监听筛选和分页数据的变化，重新获取数据：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">watch: &#123;</span><br><span class="line">  <span class="attr">filters</span>: &#123;</span><br><span class="line">    handler () &#123;</span><br><span class="line">      <span class="built_in">this</span>.fetchUsers()</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">deep</span>: <span class="literal">true</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="string">&#x27;pagination.current&#x27;</span> () &#123;</span><br><span class="line">    <span class="built_in">this</span>.fetchUsers()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意这里的 <code>deep: true</code>，一旦 <code>filters.name</code>、<code>filters.mobile</code> 和 <code>pagination.current</code> 的值发生变化，都会重新执行一遍 <code>fetchUsers</code> 动作。需要补充 <code>fetchUsers</code> 方法：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">methods: &#123;</span><br><span class="line">  <span class="keyword">async</span> fetchUsers () &#123;</span><br><span class="line">    <span class="comment">// 构造筛选和分页参数</span></span><br><span class="line">    <span class="keyword">const</span> filterParams = <span class="built_in">Object</span>.entries(<span class="built_in">this</span>.filters)</span><br><span class="line">      .reduce(<span class="function">(<span class="params">finalParams, [key, value]</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (value) &#123;</span><br><span class="line">          finalParams[key] = value</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> finalParams</span><br><span class="line">      &#125;, &#123;&#125;)</span><br><span class="line">    <span class="keyword">const</span> paginationParams = &#123;</span><br><span class="line">      <span class="attr">page</span>: <span class="built_in">this</span>.pagination.current,</span><br><span class="line">      <span class="attr">perPage</span>: <span class="built_in">this</span>.pagination.pageSize</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 执行远端请求</span></span><br><span class="line">    <span class="keyword">const</span> data = <span class="keyword">await</span> fetchUsers(&#123;</span><br><span class="line">      ...filterParams,</span><br><span class="line">      ...paginationParams</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 修改当前数据</span></span><br><span class="line">    <span class="built_in">this</span>.users = data.users</span><br><span class="line">    <span class="built_in">this</span>.pagination.total = data.total</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当然，还需提到一点，以上 <code>mounted</code> 的实现方式欠妥，应该修正为：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mounted () &#123;</span><br><span class="line">  <span class="built_in">this</span>.fetchUsers()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="第一阶段总结"><a href="#第一阶段总结" class="headerlink" title="第一阶段总结"></a>第一阶段总结</h3><p>至此，一个拥有基本流程的列表页已经全部完成了，它拥有：</p>
+<ul>
+<li>展示一个数据列表</li>
+<li>支持筛选</li>
+<li>支持分页浏</li>
+</ul>
+<p>有关搜索和排序的实现，它们的实现逻辑与筛选、分页一致，也是从数据出发，再监听数据的变化。所以这里不再重复实现了，读者可以自行完成。</p>
+<p>总结一下，实现这样的一个页面，它的要点是：</p>
+<ol>
+<li>首先定义数据结构，我们在这里定义了三个数据：<code>filters</code>、<code>pagination</code>、<code>users</code>.</li>
+<li>定义数据之间的关系，这里的关系是，数据 <code>users</code> 受到 <code>filters</code> 和 <code>pagination</code> 的支配。</li>
+</ol>
+<p>关于以上第 2 点，可以进一步说明。因为数据 <code>users</code> 受到 <code>filters</code> 和 <code>pagination</code> 的支配，用户一旦想要重新渲染 <code>users</code> 数据，只需要调整 <code>filters</code> 和 <code>pagination</code> 数据即可。这里采用 watch 机制实现，事实上也可以采用一个 UI 交互，例如点击一个按钮，加以实现。</p>
+<h2 id="第二阶段"><a href="#第二阶段" class="headerlink" title="第二阶段"></a>第二阶段</h2><p>第二阶段增加了 vue-router 的考虑。在真正实现之前，先考虑这样一个问题：列表页与路由有什么关系呢？实现列表页时是可以不考虑路由的，但加上路由会带来两个好处：</p>
+<ol>
+<li>当需要分享特定列表给其他人时，路由中带上筛选、分页等参数可以让对方直接进入目标页；</li>
+<li>当执行特定的筛选、分页等操作后，及时调整路由参数可以从详情页返回时回到当前列表页的状态。</li>
+</ol>
+<p>我们先前定义了 <code>filters</code> 和 <code>pagination</code> 数据的默认值，它们是这样的：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">pagination: &#123;</span><br><span class="line">  <span class="attr">current</span>: <span class="number">1</span>,</span><br><span class="line">  <span class="attr">pageSize</span>: <span class="number">10</span>,</span><br><span class="line">  <span class="attr">total</span>: <span class="number">0</span></span><br><span class="line">&#125;,</span><br><span class="line"><span class="attr">filters</span>: &#123;</span><br><span class="line">  <span class="attr">name</span>: <span class="string">&#x27;&#x27;</span>,</span><br><span class="line">  <span class="attr">mobile</span>: <span class="string">&#x27;&#x27;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>带上路由考虑时，重点是维护 <code>filters</code>、 <code>pagination</code> 和路由参数的一致性。这要考虑两个方面：</p>
+<ol>
+<li>在页面初始化时从路由参数中加载 <code>filters</code>、<code>pagination</code> 的默认值；</li>
+<li>在 <code>filters</code>、<code>pagination</code> 改变时修改地址栏中显示的路由参数。</li>
+</ol>
+<h3 id="维护路由参数和组件内数据的状体一致性"><a href="#维护路由参数和组件内数据的状体一致性" class="headerlink" title="维护路由参数和组件内数据的状体一致性"></a>维护路由参数和组件内数据的状体一致性</h3><p>好了，既然目标清洗了，着手去做就是了。首先要调整 <code>mounted</code> 的代码，它要做两件事：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mounted () &#123;</span><br><span class="line">  <span class="built_in">this</span>.loadRoute()</span><br><span class="line">  <span class="built_in">this</span>.fetchUsers()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后看如何加载路由参数：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">methods: &#123;</span><br><span class="line">  loadRoute () &#123;</span><br><span class="line">    <span class="comment">// 因为我待会要修改路由参数对象，所以先拷贝一个副本</span></span><br><span class="line">    <span class="keyword">const</span> routeParams = <span class="built_in">Object</span>.assign(&#123;&#125;, <span class="built_in">this</span>.$route.query)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 路由中名为 `page` 的参数代表当前页</span></span><br><span class="line">    <span class="built_in">this</span>.pagination.current = routeParams.page</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 剩下的参数全部给 filters</span></span><br><span class="line">    <span class="keyword">delete</span> routeParams.page</span><br><span class="line">    <span class="built_in">this</span>.filters = routeParams</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样第一步便完成了，第二步即要修改 <code>filters</code>、<code>pagination</code> 改变后的代码：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">watch: &#123;</span><br><span class="line">  <span class="attr">filters</span>: &#123;</span><br><span class="line">    <span class="keyword">async</span> handler () &#123;</span><br><span class="line">      <span class="keyword">await</span> <span class="built_in">this</span>.fetchUsers()</span><br><span class="line">      <span class="built_in">this</span>.refreshRoute()</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">deep</span>: <span class="literal">true</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="keyword">async</span> <span class="string">&#x27;pagination.current&#x27;</span> () &#123;</span><br><span class="line">    <span class="keyword">await</span> <span class="built_in">this</span>.fetchUsers()</span><br><span class="line">    <span class="built_in">this</span>.refreshRoute()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>refreshRoute</code> 即把 <code>loadRoute</code> 的逻辑反过来：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">methods: &#123;</span><br><span class="line">  refreshRoute () &#123;</span><br><span class="line">    <span class="keyword">const</span> filters = <span class="built_in">Object</span>.entries(<span class="built_in">this</span>.filters)</span><br><span class="line">      .reduce(<span class="function">(<span class="params">finalFilters, [key, value]</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (value) &#123;</span><br><span class="line">          finalFilters[key] = value</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> finalFilters</span><br><span class="line">      &#125;, &#123;&#125;)</span><br><span class="line"></span><br><span class="line">    <span class="built_in">this</span>.$router.replace(&#123;</span><br><span class="line">      <span class="attr">query</span>: &#123;</span><br><span class="line">        <span class="attr">page</span>: <span class="built_in">this</span>.pagination.current,</span><br><span class="line">        ...filters</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>等等，这样就结束了吗？</p>
+<h3 id="调整监听的时机"><a href="#调整监听的时机" class="headerlink" title="调整监听的时机"></a>调整监听的时机</h3><p>如果这样实现之后，打开控制台，你会发现一个控制台会抛出一个 <code>NavigationDuplicated</code> 错误。仔细观察，你会发现，在 <code>mounted</code> 逻辑内会设置 <code>filters</code> 和 <code>pagination.current</code> 的值，从而触发监听逻辑，最终导致 <code>refreshRoute</code> 的逻辑执行。而此时执行 <code>refreshRoute</code> 就会加载一份同地址栏一模一样的路由，从而引起 vue-router 的警告。</p>
+<p>除此之外，此时响应监听让我心生一种不安的感觉，除了 <code>refreshRoute</code>，它极有可能再一次执行 <code>fetchUsers</code>，从而导致重复加载。我没有实际去验证是否发生了这种情况，但既然不安，就是隐患。</p>
+<p>问题的症结在于监听的时机不对，页面应该在加载完初始数据之后，待它的状态稳定下来才开始监听。所以，这里我摒弃了 <code>watch</code> 选项，改用 <code>$watch</code> API：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">async</span> mounted () &#123;</span><br><span class="line">  <span class="built_in">this</span>.loadRoute()</span><br><span class="line">  <span class="keyword">await</span> <span class="built_in">this</span>.fetchUsers()</span><br><span class="line"></span><br><span class="line">  <span class="built_in">this</span>.$watch(<span class="string">&#x27;filters&#x27;</span>, &#123;</span><br><span class="line">    <span class="attr">handler</span>: <span class="built_in">this</span>.respondFetchParamsChange,</span><br><span class="line">    <span class="attr">deep</span>: <span class="literal">true</span></span><br><span class="line">  &#125;)</span><br><span class="line">  <span class="built_in">this</span>.$watch(<span class="string">&#x27;pagination.current&#x27;</span>, <span class="built_in">this</span>.respondFetchParamsChange)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而 <code>respondFetchParamsChange</code> 即是原来监听下的处理函数：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">methods: &#123;</span><br><span class="line">  <span class="keyword">async</span> respondFetchParamsChange () &#123;</span><br><span class="line">    <span class="keyword">await</span> <span class="built_in">this</span>.fetchUsers()</span><br><span class="line">    <span class="built_in">this</span>.refreshRoute()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>至此，才算是大功告成。</p>
+<h2 id="完整代码"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">    &lt;!-- 筛选项目表单 --&gt;</span><br><span class="line">    &lt;el-form :inline=&quot;true&quot;&gt;</span><br><span class="line">      &lt;el-form-item label=&quot;姓名&quot;&gt;</span><br><span class="line">        &lt;el-input v-model=&quot;filters.name&quot; placeholder=&quot;输入姓名筛选&quot;&gt;&lt;/el-input&gt;</span><br><span class="line">      &lt;/el-form-item&gt;</span><br><span class="line">      &lt;el-form-item label=&quot;手机号&quot;&gt;</span><br><span class="line">        &lt;el-input v-model=&quot;filters.mobile&quot; placeholder=&quot;输入手机号筛选&quot;&gt;&lt;/el-input&gt;</span><br><span class="line">      &lt;/el-form-item&gt;</span><br><span class="line">    &lt;/el-form&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!-- 展示用户数据列表 --&gt;</span><br><span class="line">    &lt;el-table :data=&quot;users&quot; style=&quot;width: 100%&quot;&gt;</span><br><span class="line">      &lt;el-table-column</span><br><span class="line">        prop=&quot;name&quot;</span><br><span class="line">        label=&quot;姓名&quot;</span><br><span class="line">        width=&quot;180&quot;&gt;</span><br><span class="line">      &lt;/el-table-column&gt;</span><br><span class="line">      &lt;el-table-column</span><br><span class="line">        prop=&quot;mobile&quot;</span><br><span class="line">        label=&quot;手机号&quot;</span><br><span class="line">        width=&quot;180&quot;&gt;</span><br><span class="line">      &lt;/el-table-column&gt;</span><br><span class="line">      &lt;el-table-column</span><br><span class="line">        prop=&quot;address&quot;</span><br><span class="line">        label=&quot;地址&quot;&gt;</span><br><span class="line">      &lt;/el-table-column&gt;</span><br><span class="line">      &lt;el-table-column</span><br><span class="line">        prop=&quot;date&quot;</span><br><span class="line">        label=&quot;登记日期&quot;</span><br><span class="line">        width=&quot;180&quot;&gt;</span><br><span class="line">      &lt;/el-table-column&gt;</span><br><span class="line">    &lt;/el-table&gt;</span><br><span class="line"></span><br><span class="line">    &lt;!-- 控制分页的组件 --&gt;</span><br><span class="line">    &lt;el-pagination</span><br><span class="line">      layout=&quot;prev, pager, next&quot;</span><br><span class="line">      :current-page=&quot;pagination.current&quot;</span><br><span class="line">      :page-size=&quot;pagination.pageSize&quot;</span><br><span class="line">      :total=&quot;pagination.total&quot;</span><br><span class="line">      @current-change=&quot;pagination.current = $event&quot;</span><br><span class="line">    &gt;&lt;/el-pagination&gt;</span><br><span class="line">  &lt;/div&gt;</span><br><span class="line">&lt;/template&gt;</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line">import fetchUsers from &#x27;./fetchUsers&#x27;</span><br><span class="line"></span><br><span class="line">export default &#123;</span><br><span class="line">  data () &#123;</span><br><span class="line">    return &#123;</span><br><span class="line">      // 展示给列表的数据</span><br><span class="line">      users: [],</span><br><span class="line">      // 分页相关</span><br><span class="line">      pagination: &#123;</span><br><span class="line">        current: 1,</span><br><span class="line">        pageSize: 10,</span><br><span class="line">        total: 0</span><br><span class="line">      &#125;,</span><br><span class="line">      // 筛选相关</span><br><span class="line">      filters: &#123;</span><br><span class="line">        name: &#x27;&#x27;,</span><br><span class="line">        mobile: &#x27;&#x27;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  async mounted () &#123;</span><br><span class="line">    this.loadRoute()</span><br><span class="line">    await this.fetchUsers()</span><br><span class="line"></span><br><span class="line">    this.$watch(&#x27;filters&#x27;, &#123;</span><br><span class="line">      handler: this.respondFetchParamsChange,</span><br><span class="line">      deep: true</span><br><span class="line">    &#125;)</span><br><span class="line">    this.$watch(&#x27;pagination.current&#x27;, this.respondFetchParamsChange)</span><br><span class="line">  &#125;,</span><br><span class="line">  methods: &#123;</span><br><span class="line">    // 根据组件当前的筛选、分页数据更新用户数据</span><br><span class="line">    async fetchUsers () &#123;</span><br><span class="line">      // 构造筛选和分页参数</span><br><span class="line">      const filterParams = Object.entries(this.filters)</span><br><span class="line">        .reduce((finalParams, [key, value]) =&gt; &#123;</span><br><span class="line">          if (value) &#123;</span><br><span class="line">            finalParams[key] = value</span><br><span class="line">          &#125;</span><br><span class="line">          return finalParams</span><br><span class="line">        &#125;, &#123;&#125;)</span><br><span class="line">      const paginationParams = &#123;</span><br><span class="line">        page: this.pagination.current,</span><br><span class="line">        perPage: this.pagination.pageSize</span><br><span class="line">      &#125;</span><br><span class="line">  </span><br><span class="line">      // 执行远端请求</span><br><span class="line">      const data = await fetchUsers(&#123;</span><br><span class="line">        ...filterParams,</span><br><span class="line">        ...paginationParams</span><br><span class="line">      &#125;)</span><br><span class="line">  </span><br><span class="line">      // 修改当前数据</span><br><span class="line">      this.users = data.users</span><br><span class="line">      this.pagination.total = data.total</span><br><span class="line">    &#125;,</span><br><span class="line">    // 页面首次加载时调用，从路由参数初始化组件的筛选、分页数据</span><br><span class="line">    loadRoute () &#123;</span><br><span class="line">      // 因为我待会要修改路由参数对象，所以先拷贝一个副本</span><br><span class="line">      const routeParams = Object.assign(&#123;&#125;, this.$route.query)</span><br><span class="line"></span><br><span class="line">      // 路由中名为 `page` 的参数代表当前页</span><br><span class="line">      this.pagination.current = routeParams.page ? parseInt(routeParams.page) : 1</span><br><span class="line"></span><br><span class="line">      // 剩下的参数全部给 filters</span><br><span class="line">      delete routeParams.page</span><br><span class="line">      this.filters = routeParams</span><br><span class="line">    &#125;,</span><br><span class="line">    // 由组件当前的筛选、分页数据重置路由（即地址栏的显示）</span><br><span class="line">    refreshRoute () &#123;</span><br><span class="line">      const filters = Object.entries(this.filters)</span><br><span class="line">        .reduce((finalFilters, [key, value]) =&gt; &#123;</span><br><span class="line">          if (value) &#123;</span><br><span class="line">            finalFilters[key] = value</span><br><span class="line">          &#125;</span><br><span class="line">          return finalFilters</span><br><span class="line">        &#125;, &#123;&#125;)</span><br><span class="line"></span><br><span class="line">      this.$router.replace(&#123;</span><br><span class="line">        query: &#123;</span><br><span class="line">          page: this.pagination.current,</span><br><span class="line">          ...filters</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;,</span><br><span class="line">    // 监听函数，响应筛选、分页数据的变化</span><br><span class="line">    async respondFetchParamsChange () &#123;</span><br><span class="line">      await this.fetchUsers()</span><br><span class="line">      this.refreshRoute()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/vue/" rel="tag"># vue</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/10/10/%E7%8E%8B%E8%80%85%E8%8D%A3%E8%80%80/" rel="prev" title="王者荣耀">
+                  <i class="fa fa-chevron-left"></i> 王者荣耀
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/12/13/web-frontend-scaffold/" rel="next" title="前端框架和技术实践汇总">
+                  前端框架和技术实践汇总 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yet Run</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"yetrun","repo":"yetrun.github.io","client_id":"a386f9dc0f5fe109f2d1","client_secret":"e2a830c7febee5b141b227032f95161f738be604","admin_user":"yetrun","distraction_free_mode":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","js":{"url":"https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.min.js","integrity":"sha256-Pmj85ojLaPOWwRtlMJwmezB/Qg8BzvJp5eTzvXaYAfA="},"path_md5":"7c219d9b4fb29add8de9542cc9fb8fb6"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"yet.run","root":"/","images":"/images","scheme":"Pisces","version":"8.7.1","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<meta name="description" content="问题背景当组件需要响应路由更新的时候，有人提到可以用 watch(route) 方法。这个方法可以监听路由的一切变化。比如，对于一个文章组件，我们可以通过监听路由来达到重新获取文章的目的： 12345&#x2F;&#x2F; 监听路由的变化。当我们的路由从 &#96;&#x2F;articles&#x2F;1&#96; 跳转到 &#96;&#x2F;articles&#x2F;2&#96; 时，下面的执行逻辑是正确的。watch(route, async () &#x3D;&gt; &amp;#123;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vue 3 避坑指南（一）：避免使用 watch(route)">
+<meta property="og:url" content="https://yet.run/2023/07/09/vue-3-watch-route/index.html">
+<meta property="og:site_name" content="Yet Run 的小站">
+<meta property="og:description" content="问题背景当组件需要响应路由更新的时候，有人提到可以用 watch(route) 方法。这个方法可以监听路由的一切变化。比如，对于一个文章组件，我们可以通过监听路由来达到重新获取文章的目的： 12345&#x2F;&#x2F; 监听路由的变化。当我们的路由从 &#96;&#x2F;articles&#x2F;1&#96; 跳转到 &#96;&#x2F;articles&#x2F;2&#96; 时，下面的执行逻辑是正确的。watch(route, async () &#x3D;&gt; &amp;#123;">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-07-09T02:43:58.000Z">
+<meta property="article:modified_time" content="2023-07-09T02:47:48.683Z">
+<meta property="article:author" content="Yet Run">
+<meta property="article:tag" content="Vue">
+<meta property="article:tag" content="避坑指南">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://yet.run/2023/07/09/vue-3-watch-route/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://yet.run/2023/07/09/vue-3-watch-route/","path":"2023/07/09/vue-3-watch-route/","title":"Vue 3 避坑指南（一）：避免使用 watch(route)"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Vue 3 避坑指南（一）：避免使用 watch(route) | Yet Run 的小站</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Yet Run 的小站</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">问题背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%AE%E5%A4%8D%E5%8A%9E%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">修复办法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%BA%E9%94%99%E6%83%85%E5%86%B5"><span class="nav-number">3.</span> <span class="nav-text">出错情况</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-overview">
+            <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yet Run</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yet.run/2023/07/09/vue-3-watch-route/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yet Run">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yet Run 的小站">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Vue 3 避坑指南（一）：避免使用 watch(route)
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-07-09 10:43:58 / 修改时间：10:47:48" itemprop="dateCreated datePublished" datetime="2023-07-09T10:43:58+08:00">2023-07-09</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>当组件需要响应路由更新的时候，有人提到可以用 <code>watch(route)</code> 方法。这个方法可以监听路由的一切变化。比如，对于一个文章组件，我们可以通过监听路由来达到重新获取文章的目的：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 监听路由的变化。当我们的路由从 `/articles/1` 跳转到 `/articles/2` 时，下面的执行逻辑是正确的。</span></span><br><span class="line">watch(route, <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> articleId = route.params.id</span><br><span class="line">  article.value = <span class="keyword">await</span> fetchArticle(articleId)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>但是，请千万别这么用。此时组件不仅监听了当前组件路由的变化，也监听了别的组件的路由变化。当路由跳转到不属于当前组件的路由时，上述 <code>watch</code> 响应<em>可能</em>会触发，从而导致错误的执行逻辑：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">watch(route, <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="comment">// 如果跳转到别的路由，比如跳转到 `/users/1`，此时获取到的 articleId 是错误的。</span></span><br><span class="line">  <span class="keyword">const</span> articleId = route.params.id</span><br><span class="line">  article.value = <span class="keyword">await</span> fetchArticle(articleId)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>所以，请<strong>避免使用 <code>watch(route)</code>，因为它可能会监听到不属于自身的路由变化</strong>。</p>
+<span id="more"></span>
+
+<h2 id="修复办法"><a href="#修复办法" class="headerlink" title="修复办法"></a>修复办法</h2><p>针对这种情况，有两种办法可以改善。</p>
+<p><strong>第一种，</strong>在 <code>watch(route)</code> 内部添加一个判断条件：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">watch(route, <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">if</span>(route.name === <span class="string">&#x27;article&#x27;</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> articleId = route.params.id</span><br><span class="line">    article.value = <span class="keyword">await</span> fetchArticle(articleId)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><strong>第二种，</strong>使用 vue-router 提供的导航守卫：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;onBeforeRouteUpdate&#125; <span class="keyword">from</span> <span class="string">&#x27;vue-router&#x27;</span></span><br><span class="line"></span><br><span class="line">onBeforeRouteUpdate(<span class="keyword">async</span> (route) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> articleId = route.params.id</span><br><span class="line">  article.value = <span class="keyword">await</span> fetchArticle(articleId)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h2 id="出错情况"><a href="#出错情况" class="headerlink" title="出错情况"></a>出错情况</h2><p>事实上，由于 vue-router 内部执行机制的原因，出现这样错误的概率是很低的。也正因为很低，往往会被人们所忽略，而且一旦出现问题往往不知所措。我在这里举出一个能够出现这样错误的例子。</p>
+<p>在应用里添加 <code>RouterView</code>，遇到路由跳转时一般不会遇到这个问题。因为此时组件已经卸载下来了，不会再触发 <code>watch</code> 响应。但我在应用里<strong>添加子路由</strong>后，情况就发生了变化。</p>
+<p>我的应用里有一个标签页列表（<code>tabs</code>）这样的组件，当切换标签页（<code>tab</code>）时切换到不同的视图。一共有两种形式的视图和它们对应的路由：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// router.js</span></span><br><span class="line"><span class="keyword">const</span> routes = [</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">path</span>: <span class="string">&#x27;/views&#x27;</span>,</span><br><span class="line">    <span class="attr">name</span>: <span class="string">&#x27;views&#x27;</span>,</span><br><span class="line">    <span class="attr">component</span>: HomeView,</span><br><span class="line">    <span class="attr">redirect</span>: &#123; <span class="attr">name</span>: <span class="string">&#x27;tableView&#x27;</span> &#125;,</span><br><span class="line">    <span class="attr">children</span>: [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">path</span>: <span class="string">&#x27;tableView&#x27;</span>, <span class="comment">// 路由格式 &quot;/views/tableView&quot;</span></span><br><span class="line">        <span class="attr">name</span>: <span class="string">&#x27;tableView&#x27;</span>,</span><br><span class="line">        <span class="attr">component</span>: TableView</span><br><span class="line">      &#125;,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">path</span>: <span class="string">&#x27;boardView&#x27;</span>, <span class="comment">// 路由格式 &quot;/views/boardView?boardId=xxx&quot;</span></span><br><span class="line">        <span class="attr">name</span>: <span class="string">&#x27;boardView&#x27;</span>,</span><br><span class="line">        <span class="attr">component</span>: BoardView</span><br><span class="line">      &#125;</span><br><span class="line">    ]</span><br><span class="line">  &#125;</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> createRouter(&#123;</span><br><span class="line">  <span class="attr">history</span>: createWebHashHistory(),</span><br><span class="line">  routes</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- HomeView.vue：这个是标签页视图的主页面 --&gt;</span><br><span class="line">&lt;template&gt;</span><br><span class="line">  &lt;div&gt;</span><br><span class="line">    &lt;header&gt;</span><br><span class="line">      &lt;!-- 这里直接使用按钮模拟标签页，点击按钮切换到不同的路由视图 --&gt;</span><br><span class="line">      &lt;button @click=&quot;router.replace(&#123;name: &#x27;tableView&#x27;&#125;)&quot;&gt;</span><br><span class="line">        表格视图</span><br><span class="line">      &lt;/button&gt;</span><br><span class="line">      &lt;button @click=&quot;router.replace(&#123;name: &#x27;boardView&#x27;, query: &#123;boardId: 1&#125;&#125;)&quot;&gt;</span><br><span class="line">        看板一</span><br><span class="line">      &lt;/button&gt;</span><br><span class="line">      &lt;button @click=&quot;router.replace(&#123;name: &#x27;boardView&#x27;, query: &#123;boardId: 2&#125;&#125;)&quot;&gt;</span><br><span class="line">        看板二</span><br><span class="line">      &lt;/button&gt;</span><br><span class="line">      &lt;button @click=&quot;router.replace(&#123;name: &#x27;boardView&#x27;, query: &#123;boardId: 3&#125;&#125;)&quot;&gt;</span><br><span class="line">        看板三</span><br><span class="line">      &lt;/button&gt;</span><br><span class="line">    &lt;/header&gt;</span><br><span class="line">    &lt;main&gt;</span><br><span class="line">      &lt;RouterView /&gt; &lt;!-- 子路由视图，在这里加载 TableView 或 BoardView --&gt;</span><br><span class="line">    &lt;/main&gt;</span><br><span class="line">  &lt;/div&gt;</span><br><span class="line">&lt;/template&gt;</span><br></pre></td></tr></table></figure>
+
+<p>标签页列表下有一个 <code>TableView</code>，同时有多个 <code>BoardView</code>. 我们在 <code>BoardView</code> 中通过路由参数获取数据，并且响应路由变化：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- BoardView.vue --&gt;</span><br><span class="line"><span class="keyword">const</span> fetchData = <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> boardId = route.query.boardId</span><br><span class="line">  <span class="keyword">if</span>(boardId) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`Fetch board data of id <span class="subst">$&#123;boardId&#125;</span>`</span>) <span class="comment">// 正常加载数据</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">`Illegal board id: <span class="subst">$&#123;boardId&#125;</span>`</span>)  <span class="comment">// 异常的 boardId，抛错</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">onMounted(fetchData) <span class="comment">// 页面加载时和路由切换时都重新加载数据</span></span><br><span class="line">watch(route, fetchData)</span><br></pre></td></tr></table></figure>
+
+<p><strong>错误出现在这个时候。当我们在看板视图之间切换时没有问题，但我们从看板视图切换到表格视图时，问题就出现了：<code>watch(route,  fetchData)</code> 意外地会执行，从而导致错误 <code>Illegal board id: undefined</code> 发生。</strong></p>
+<p>在单层路由下不会出现这个问题，而在子路由下会出现这个问题。为了能够完整地复现这个用例，我补充一下入口函数：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// main.js</span></span><br><span class="line"><span class="keyword">import</span> &#123; createApp &#125; <span class="keyword">from</span> <span class="string">&#x27;vue&#x27;</span></span><br><span class="line"><span class="keyword">import</span> &#123; RouterView &#125; <span class="keyword">from</span> <span class="string">&quot;vue-router&quot;</span></span><br><span class="line"><span class="keyword">import</span> router <span class="keyword">from</span> <span class="string">&#x27;./router.js&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> app = createApp(RouterView)</span><br><span class="line">app.use(router)</span><br><span class="line">app.mount(<span class="string">&#x27;#app&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><em>至于为什么单层路由不会出现问题，而子路由却会，我并不清楚，希望懂行的同学能够给予我解答。</em></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Vue/" rel="tag"># Vue</a>
+              <a href="/tags/%E9%81%BF%E5%9D%91%E6%8C%87%E5%8D%97/" rel="tag"># 避坑指南</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/04/meta-api-rails-plugin/" rel="prev" title="为 Rails 应用添加参数验证、返回值渲染和生成 Swagger 文档的能力">
+                  <i class="fa fa-chevron-left"></i> 为 Rails 应用添加参数验证、返回值渲染和生成 Swagger 文档的能力
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yet Run</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"yetrun","repo":"yetrun.github.io","client_id":"a386f9dc0f5fe109f2d1","client_secret":"e2a830c7febee5b141b227032f95161f738be604","admin_user":"yetrun","distraction_free_mode":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","js":{"url":"https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.min.js","integrity":"sha256-Pmj85ojLaPOWwRtlMJwmezB/Qg8BzvJp5eTzvXaYAfA="},"path_md5":"1cb04f4a1642d7a73a305315e22091f9"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>

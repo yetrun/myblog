@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"yet.run","root":"/","images":"/images","scheme":"Pisces","version":"8.7.1","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<meta name="description" content="现实中为 Rails 添加参数验证的 Gems 很多，添加 Swagger 文档生成的也不少，但能够同时支持参数验证、返回值渲染和 Swagger 文档生成的少之又少，而且将这些能力紧密结合在一起的就几乎没有了。 大家伙在团队开发中，是否会有过这些困惑：  缺少一个比较详细的 API 文档，有些甚至没有文档。 文档和实现往往不一致，明明文档中说有这个字段，结果在实际调用时发现没有这个字段，或者反之">
+<meta property="og:type" content="article">
+<meta property="og:title" content="为 Rails 应用添加参数验证、返回值渲染和生成 Swagger 文档的能力">
+<meta property="og:url" content="https://yet.run/2023/04/04/meta-api-rails-plugin/index.html">
+<meta property="og:site_name" content="Yet Run 的小站">
+<meta property="og:description" content="现实中为 Rails 添加参数验证的 Gems 很多，添加 Swagger 文档生成的也不少，但能够同时支持参数验证、返回值渲染和 Swagger 文档生成的少之又少，而且将这些能力紧密结合在一起的就几乎没有了。 大家伙在团队开发中，是否会有过这些困惑：  缺少一个比较详细的 API 文档，有些甚至没有文档。 文档和实现往往不一致，明明文档中说有这个字段，结果在实际调用时发现没有这个字段，或者反之">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-04-04T05:22:18.000Z">
+<meta property="article:modified_time" content="2023-07-09T02:41:07.041Z">
+<meta property="article:author" content="Yet Run">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://yet.run/2023/04/04/meta-api-rails-plugin/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://yet.run/2023/04/04/meta-api-rails-plugin/","path":"2023/04/04/meta-api-rails-plugin/","title":"为 Rails 应用添加参数验证、返回值渲染和生成 Swagger 文档的能力"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>为 Rails 应用添加参数验证、返回值渲染和生成 Swagger 文档的能力 | Yet Run 的小站</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Yet Run 的小站</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E7%AA%A5%E4%B8%80%E8%A7%88"><span class="nav-number">1.</span> <span class="nav-text">初窥一览</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">1.1.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E5%86%99%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.2.</span> <span class="nav-text">编写示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%9F%E6%88%90-Swagger-%E6%96%87%E6%A1%A3"><span class="nav-number">1.3.</span> <span class="nav-text">生成 Swagger 文档</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8%E4%B8%8D%E5%90%8C%E7%9A%84%E5%9C%BA%E5%90%88%E5%93%8D%E5%BA%94%E4%B8%8D%E5%90%8C%E7%9A%84%E5%AD%97%E6%AE%B5"><span class="nav-number">2.</span> <span class="nav-text">用不同的场合响应不同的字段</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%AE%9E%E4%BD%93%E7%AE%80%E5%8C%96%E5%8F%82%E6%95%B0%E5%92%8C%E8%BF%94%E5%9B%9E%E5%80%BC%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="nav-number">2.1.</span> <span class="nav-text">使用实体简化参数和返回值的定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E6%A0%B9%E6%8D%AE%E4%B8%8D%E5%90%8C%E5%9C%BA%E6%99%AF%E8%BF%94%E5%9B%9E%E4%B8%8D%E5%90%8C%E7%9A%84%E5%AD%97%E6%AE%B5"><span class="nav-number">2.2.</span> <span class="nav-text">如何根据不同场景返回不同的字段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E4%B8%8A%E7%9A%84%E9%94%81%E5%AE%9A%EF%BC%9A%E5%9C%A8%E5%8F%82%E6%95%B0%E4%B8%8A%E5%8C%BA%E5%88%86%E4%B8%8D%E5%90%8C%E7%9A%84%E5%9C%BA%E5%90%88"><span class="nav-number">2.3.</span> <span class="nav-text">参数上的锁定：在参数上区分不同的场合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E4%B8%8A%E7%9A%84%E9%94%81%E5%AE%9A%EF%BC%9A%E5%A4%84%E7%90%86%E7%BC%BA%E5%A4%B1%E5%8F%82%E6%95%B0"><span class="nav-number">2.4.</span> <span class="nav-text">参数上的锁定：处理缺失参数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%B1%E5%85%A5%E7%BB%86%E8%8A%82"><span class="nav-number">3.</span> <span class="nav-text">深入细节</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%BB%98%E8%AE%A4%E5%80%BC"><span class="nav-number">3.1.</span> <span class="nav-text">默认值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E9%AA%8C%E8%AF%81"><span class="nav-number">3.2.</span> <span class="nav-text">数据验证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9E%9A%E4%B8%BE"><span class="nav-number">3.3.</span> <span class="nav-text">枚举</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E6%80%81"><span class="nav-number">3.4.</span> <span class="nav-text">多态</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E5%90%8E%E7%9A%84%E8%AF%B4%E8%BE%9E"><span class="nav-number">4.</span> <span class="nav-text">最后的说辞</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-overview">
+            <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yet Run</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yet.run/2023/04/04/meta-api-rails-plugin/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yet Run">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yet Run 的小站">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          为 Rails 应用添加参数验证、返回值渲染和生成 Swagger 文档的能力
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-04 13:22:18" itemprop="dateCreated datePublished" datetime="2023-04-04T13:22:18+08:00">2023-04-04</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-07-09 10:41:07" itemprop="dateModified" datetime="2023-07-09T10:41:07+08:00">2023-07-09</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>现实中为 Rails 添加参数验证的 Gems 很多，添加 Swagger 文档生成的也不少，但能够同时支持参数验证、返回值渲染和 Swagger 文档生成的少之又少，而且将这些能力紧密结合在一起的就几乎没有了。</p>
+<p>大家伙在团队开发中，是否会有过这些困惑：</p>
+<ul>
+<li>缺少一个比较详细的 API 文档，有些甚至没有文档。</li>
+<li>文档和实现往往不一致，明明文档中说有这个字段，结果在实际调用时发现没有这个字段，或者反之。</li>
+<li>文档很难实现规约，比如参数集的字段与返回值的字段需要区分开来，以及不同场景下返回值的字段也应有所区分。所以，现实中往往只能抛出一个大而全的字段表放在 API 文档中。</li>
+</ul>
+<span id="more"></span>
+
+<p>如果有，你就真应该看看我的这个 gem：<a target="_blank" rel="noopener" href="https://github.com/yetrun/web-frame">meta-api</a>，它天生就是为了解决这些问题的。我们把 API 文档看成是前后端开发者都需要遵守的契约，不仅是前端调用错误需要报错，后端使用错误也需要报错。</p>
+<h2 id="初窥一览"><a href="#初窥一览" class="headerlink" title="初窥一览"></a>初窥一览</h2><p><em>温馨提示：</em>访问仓库 <a target="_blank" rel="noopener" href="https://github.com/yetrun/web-frame-rails-example">web-frame-rails-example</a> 可查看示例项目。你可以现在就去体验，或者任何时候回过头来体验均可。</p>
+<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><p>要在 Rails 中使用 <code>meta-api</code>，请遵循以下步骤。</p>
+<p><strong>第一步，</strong>在 Gemfile 中添加：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gem <span class="string">&#x27;meta-api&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后执行 <code>bundle install</code>.</p>
+<p><strong>第二步，</strong>在 <code>config/initializers</code> 目录下创建一个文件，例如 <code>meta_rails_plugin.rb</code>，并写入：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">require</span> <span class="string">&#x27;meta/rails&#x27;</span></span><br><span class="line"></span><br><span class="line">Meta::Rails.setup</span><br></pre></td></tr></table></figure>
+
+<p><strong>第三步，</strong>在 <code>application_controller.rb</code> 下添加：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ApplicationController</span> &lt; ActionController::API</span></span><br><span class="line">  <span class="comment"># 引入宏命令</span></span><br><span class="line">  <span class="keyword">include</span> Meta::Rails::Plugin</span><br><span class="line"></span><br><span class="line">  <span class="comment"># 处理参数验证错误，以下仅是个示例，请根据实际需要编写</span></span><br><span class="line">  rescue_from Meta::Errors::ParameterInvalid <span class="keyword">do</span> <span class="params">|e|</span></span><br><span class="line">    render <span class="symbol">json:</span> e.errors, <span class="symbol">status:</span> <span class="symbol">:bad_request</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>以上步骤完成后，就可以在 Rails 中编写宏命令定义参数和返回值了。</p>
+<h3 id="编写示例"><a href="#编写示例" class="headerlink" title="编写示例"></a>编写示例</h3><p>下面编写一个 <code>UsersController</code>，作为使用宏命令的示例：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UsersController</span> &lt; ApplicationController</span></span><br><span class="line">  route <span class="string">&#x27;/users&#x27;</span>, <span class="symbol">:post</span> <span class="keyword">do</span></span><br><span class="line">    title <span class="string">&#x27;创建用户&#x27;</span></span><br><span class="line">    params <span class="keyword">do</span></span><br><span class="line">      param <span class="symbol">:user</span>, <span class="symbol">required:</span> <span class="literal">true</span> <span class="keyword">do</span></span><br><span class="line">        param <span class="symbol">:name</span>, <span class="symbol">type:</span> <span class="string">&#x27;string&#x27;</span>, <span class="symbol">description:</span> <span class="string">&#x27;姓名&#x27;</span></span><br><span class="line">        param <span class="symbol">:age</span>, <span class="symbol">type:</span> <span class="string">&#x27;integer&#x27;</span>, <span class="symbol">description:</span> <span class="string">&#x27;年龄&#x27;</span></span><br><span class="line">      <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    status <span class="number">201</span> <span class="keyword">do</span></span><br><span class="line">      expose <span class="symbol">:user</span> <span class="keyword">do</span></span><br><span class="line">        expose <span class="symbol">:id</span>, <span class="symbol">type:</span> <span class="string">&#x27;integer&#x27;</span>, <span class="symbol">description:</span> <span class="string">&#x27;ID&#x27;</span></span><br><span class="line">        expose <span class="symbol">:name</span>, <span class="symbol">type:</span> <span class="string">&#x27;string&#x27;</span>, <span class="symbol">description:</span> <span class="string">&#x27;姓名&#x27;</span></span><br><span class="line">        expose <span class="symbol">:age</span>, <span class="symbol">type:</span> <span class="string">&#x27;integer&#x27;</span>, <span class="symbol">description:</span> <span class="string">&#x27;年龄&#x27;</span></span><br><span class="line">      <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">create</span></span></span><br><span class="line">    user = User.create(params_on_schema[<span class="symbol">:user</span>])</span><br><span class="line">    render <span class="symbol">json_on_schema:</span> &#123; <span class="string">&#x27;user&#x27;</span> =&gt; user &#125;, <span class="symbol">status:</span> <span class="number">201</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>以上首先使用了 <code>route</code> 命令定义一个 <code>POST /users</code> 的路由，并提供了一个代码块，所有的参数定义和返回值定义都在这个代码块内。当这一切定义就绪之后，实际执行时会带来两个效果：</p>
+<ol>
+<li><p><code>params_on_schema</code>：它返回根据定义解析后的参数，比如你如果传递了这么一个参数：</p>
+ <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;user&quot;</span>: &#123;</span><br><span class="line">    <span class="attr">&quot;name&quot;</span>: <span class="string">&quot;Jim&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;age&quot;</span>: <span class="string">&quot;18&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;foo&quot;</span>: <span class="string">&quot;foo&quot;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 它会帮你过滤掉不必要的字段，并且做适度地类型转换，从而让应用内真正获取的参数变成（通过 <code>params_on_schema</code>）：</p>
+ <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;user&quot;</span>: &#123;</span><br><span class="line">    <span class="attr">&quot;name&quot;</span>: <span class="string">&quot;Jim&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;age&quot;</span>: <span class="number">18</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 这样你就可以放心无虞地将其传递给 <code>User.create!</code> 方法，不用担心任何错误。</p>
+</li>
+<li><p><code>json_on_schema</code>：通过它传递的对象会经由返回值定义解析，因为有字段的过滤、类型的转换和数据的验证，后端可以控制哪些字段返回给前端、如何返回以及在字段出错时得到提醒等。比如你的 users 表包括以下字段：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id, name, age, password, created, updated</span><br></pre></td></tr></table></figure>
+
+<p> 根据定义，它只会返回如下字段：</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id, name, age</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="生成-Swagger-文档"><a href="#生成-Swagger-文档" class="headerlink" title="生成 Swagger 文档"></a>生成 Swagger 文档</h3><p><em>一切皆是以生成 Swagger 文档为核心。</em></p>
+<p>如果你想要生成文档，请按照我的步骤执行。</p>
+<p>第一步，想好你的 Swagger 文档放哪？比如我新建一个接口用于返回 Swagger 文档：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SwaggerController</span> &lt; ApplicationController</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">index</span></span></span><br><span class="line">    Rails.application.eager_load! <span class="comment"># 需要提前加载所有控制器常量</span></span><br><span class="line">    doc = Meta::Rails::Plugin.generate_swagger_doc(</span><br><span class="line">      ApplicationController,</span><br><span class="line">      <span class="symbol">info:</span> &#123;</span><br><span class="line">        <span class="symbol">title:</span> <span class="string">&#x27;Web API 示例项目&#x27;</span>,</span><br><span class="line">        <span class="symbol">version:</span> <span class="string">&#x27;current&#x27;</span></span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="symbol">servers:</span> [</span><br><span class="line">        &#123; <span class="symbol">url:</span> <span class="string">&#x27;http://localhost:9292&#x27;</span>, <span class="symbol">description:</span> <span class="string">&#x27;Web API 示例项目&#x27;</span> &#125;</span><br><span class="line">      ]</span><br><span class="line">    )</span><br><span class="line">    render <span class="symbol">json:</span> doc</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>第二步，为它配置一个路由：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># config/routes.rb</span></span><br><span class="line"></span><br><span class="line">get <span class="string">&#x27;/swagger_doc&#x27;</span> =&gt; <span class="string">&#x27;swagger#index&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>第三步，启动应用即可查看到 Swagger 文档的效果，在浏览器内输入：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:3000/swagger_doc</span><br></pre></td></tr></table></figure>
+
+<p>JSON 格式的 Swagger 文档映入眼帘。</p>
+<blockquote>
+<p>如果你是使用 Swagger 文档的老人了，应该知道接下来怎么做。如果你不知道，请按照如下步骤渲染 Swagger 文档：</p>
+<ol>
+<li><p>为应用添加跨域支持：</p>
+ <figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Gemfile</span></span><br><span class="line">gem <span class="string">&#x27;rack-cors&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># config/initializers/cors.rb</span></span><br><span class="line">Rails.application.config.middleware.insert_before <span class="number">0</span>, Rack::Cors <span class="keyword">do</span></span><br><span class="line">  allow <span class="keyword">do</span></span><br><span class="line">    origins <span class="string">&#x27;openapi.yet.run&#x27;</span></span><br><span class="line">    resource <span class="string">&quot;*&quot;</span>, <span class="symbol">headers:</span> <span class="symbol">:any</span>, <span class="symbol">methods:</span> <span class="symbol">:all</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure></li>
+<li><p>如果你用的是 Google Chrome 浏览器，需要做一些额外的设置才能支持 localhost 域名的跨域。或者你需要将其挂在一个正常的域名下。</p>
+</li>
+<li><p>打开 <a target="_blank" rel="noopener" href="http://openapi.yet.run/playground%EF%BC%8C%E5%9C%A8%E8%BE%93%E5%85%A5%E6%A1%86%E5%86%85%E8%BE%93%E5%85%A5">http://openapi.yet.run/playground，在输入框内输入</a> <code>http://localhost:3000/swagger_doc</code>.</p>
+</li>
+</ol>
+</blockquote>
+<p>至此，一切初试体验完毕，前端可以获得一份定义明确的文档，后端也是严格按照这个文档执行的。后端开发者不用做额外的工作，它只是定义参数、定义返回值，然后，一切就完备了。</p>
+<h2 id="用不同的场合响应不同的字段"><a href="#用不同的场合响应不同的字段" class="headerlink" title="用不同的场合响应不同的字段"></a>用不同的场合响应不同的字段</h2><p>这一章节提供了一个比较充分的主题，<code>meta-api</code> 如何处理不同场合下的字段区分。不同的场合，比如：</p>
+<ol>
+<li>某些字段只用作参数，而某些字段只作为返回值。</li>
+<li>用作返回值时，某些接口返回字段 <code>a, b, c</code>，而某些接口返回字段 <code>a, b, c, d</code>.</li>
+<li>用作参数时同 2，某些接口用到字段 <code>a, b, c</code>，而某些接口用到字段 <code>a, b, c, d</code>.</li>
+<li>如何处理 HTTP 中对 <code>PUT</code> 和 <code>PATCH</code> 请求的语义区分。</li>
+</ol>
+<p>这里 <code>meta-api</code> 插件提供了实体的概念，我们可以将字段放到实体里，然后在接口中引用它。实体只用定义一遍，不需要任何的重复定义，并且最重要的是，文档和你的定义能够始终保持一致。请接下去看！</p>
+<h3 id="使用实体简化参数和返回值的定义"><a href="#使用实体简化参数和返回值的定义" class="headerlink" title="使用实体简化参数和返回值的定义"></a>使用实体简化参数和返回值的定义</h3><p>我们将上例中的参数和返回值归纳为为一个实体：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserEntity</span> &lt; Meta::Entity</span></span><br><span class="line">  property <span class="symbol">:id</span>, <span class="symbol">type:</span> <span class="string">&#x27;integer&#x27;</span>, <span class="symbol">description:</span> <span class="string">&#x27;ID&#x27;</span>, <span class="symbol">param:</span> <span class="literal">false</span></span><br><span class="line">  property <span class="symbol">:name</span>, <span class="symbol">type:</span> <span class="string">&#x27;string&#x27;</span>, <span class="symbol">description:</span> <span class="string">&#x27;姓名&#x27;</span></span><br><span class="line">  property <span class="symbol">:age</span>, <span class="symbol">type:</span> <span class="string">&#x27;integer&#x27;</span>, <span class="symbol">description:</span> <span class="string">&#x27;年龄&#x27;</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>然后参数和返回值的定义都可以引用这个实体：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">route <span class="string">&#x27;/users&#x27;</span>, <span class="symbol">:post</span> <span class="keyword">do</span></span><br><span class="line">  params <span class="keyword">do</span></span><br><span class="line">    param <span class="symbol">:user</span>, <span class="symbol">required:</span> <span class="literal">true</span>, <span class="symbol">ref:</span> UserEntity</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  status <span class="number">201</span> <span class="keyword">do</span></span><br><span class="line">    expose <span class="symbol">:user</span>, <span class="symbol">ref:</span> UserEntity</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>注意到实体定义中，<code>id</code> 属性有一个 <code>param: false</code> 选项，它表示这个字段只能被用作返回值而不能用作参数。这与之前的定义是一致的。</p>
+<p>除了限定字段只能用作返回值外，也可以限定它只能用作参数。在 <code>UserEntity</code> 内添加一个 <code>password</code> 字段作为参数，可以如下定义：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserEntity</span> &lt; Meta::Entity</span></span><br><span class="line">  <span class="comment"># 省略其他字段</span></span><br><span class="line">  property <span class="symbol">:password</span>, <span class="symbol">type:</span> <span class="string">&#x27;string&#x27;</span>, <span class="symbol">description:</span> <span class="string">&#x27;密码&#x27;</span>, <span class="symbol">render:</span> <span class="literal">false</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>总之，只用写一遍实体，同时用作参数和返回值。</strong></p>
+<h3 id="如何根据不同场景返回不同的字段"><a href="#如何根据不同场景返回不同的字段" class="headerlink" title="如何根据不同场景返回不同的字段"></a>如何根据不同场景返回不同的字段</h3><p>实际接口运用中，不同的场景返回的字段范畴往往是不同的，那些不分场合一股脑返回同样字段的接口实现是错误的。这里提到的不同的出场景，比方说：</p>
+<ol>
+<li>列表页下返回基本字段，详情页返回更多字段。</li>
+<li>普通用户查看时只能看到一部分字段，管理员查看时可查看全部字段。</li>
+</ol>
+<p>这些都可以用 <code>meta-api</code> 提供的 scope 机制加以区分。我仅以列表页接口举例。</p>
+<p>假设 <code>/articles</code> 接口返回文章列表，每一篇文章只用返回：<code>title</code> 字段；<code>/articles/:id</code>  接口需要返回文章详情，每一篇文章需要返回 <code>title</code>、<code>content</code> 字段。定义两个实体会显得繁琐加混乱，只用定义一个实体并用 <code>scope:</code> 选项加以区分：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ArticleEntity</span> &lt; Meta::Entity</span></span><br><span class="line">  property <span class="symbol">:title</span></span><br><span class="line">  property <span class="symbol">:content</span>, <span class="symbol">scope:</span> <span class="string">&#x27;full&#x27;</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>这时，列表页接口和详情页接口用如下的方式实现：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ArticlesController</span> &lt; ApplicationController</span></span><br><span class="line">  route <span class="string">&#x27;/articles&#x27;</span>, <span class="symbol">:get</span> <span class="keyword">do</span></span><br><span class="line">    status <span class="number">200</span> <span class="keyword">do</span></span><br><span class="line">      expose <span class="symbol">:articles</span>, <span class="symbol">type:</span> <span class="string">&#x27;array&#x27;</span>, <span class="symbol">ref:</span> ArticleEntity</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">index</span></span></span><br><span class="line">    articles = Article.all</span><br><span class="line">    render <span class="symbol">json_on_schema:</span> &#123; <span class="string">&#x27;articles&#x27;</span> =&gt; articles &#125;</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">    </span><br><span class="line">  route <span class="string">&#x27;/articles/:id&#x27;</span>, <span class="symbol">:get</span> <span class="keyword">do</span></span><br><span class="line">    status <span class="number">200</span> <span class="keyword">do</span></span><br><span class="line">      expose <span class="symbol">:article</span>, <span class="symbol">type:</span> <span class="string">&#x27;object&#x27;</span>, <span class="symbol">ref:</span> ArticleEntity</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">show</span></span></span><br><span class="line">    article = Article.find(params[<span class="symbol">:id</span>])</span><br><span class="line">    render <span class="symbol">json_on_schema:</span> &#123; <span class="string">&#x27;article&#x27;</span> =&gt; article &#125;, <span class="symbol">scope:</span> <span class="string">&#x27;full&#x27;</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>与常规实现唯一的变化，就是 <code>show</code> 方法内渲染数据时用到的这一行代码：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">render <span class="symbol">json_on_schema:</span> &#123; <span class="string">&#x27;article&#x27;</span> =&gt; article &#125;, <span class="symbol">scope:</span> <span class="string">&#x27;full&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>它传递了一个选项 <code>scope: &#39;full&#39;</code>，告诉实体要同时渲染出 <code>scope</code> 标注为 <code>full</code> 的字段（也就是 <code>content</code> 字段）。</p>
+<p>除了在调用时传递特定的选项外，这里还有另外一个技巧，使用 <code>meta-api</code> 提供的<strong>锁定</strong>技术将引用的实体锁定在特定的选项上。</p>
+<p>我们修改一下上例 <code>show</code> 方法的定义和实现，如下：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ArticlesController</span> &lt; ApplicationController</span></span><br><span class="line">  route <span class="string">&#x27;/articles/:id&#x27;</span>, <span class="symbol">:get</span> <span class="keyword">do</span></span><br><span class="line">    status <span class="number">200</span> <span class="keyword">do</span></span><br><span class="line">      expose <span class="symbol">:article</span>, <span class="symbol">type:</span> <span class="string">&#x27;object&#x27;</span>, <span class="symbol">ref:</span> ArticleEntity.locked(<span class="symbol">scope:</span> <span class="string">&#x27;full&#x27;</span>)</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">show</span></span></span><br><span class="line">    article = Article.find(params[<span class="symbol">:id</span>])</span><br><span class="line">    render <span class="symbol">json_on_schema:</span> &#123; <span class="string">&#x27;article&#x27;</span> =&gt; article &#125;</span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>这里有两点变化：</p>
+<ol>
+<li>在引用实体时，我们对实体作了 <code>ArticleEntity.locked(scope: &#39;full&#39;)</code>，它返回新的被锁定的实体。</li>
+<li>在渲染数据时，选项 <code>scope: &#39;full&#39;</code> 不用再传递了。</li>
+</ol>
+<p>不要小看这点小小的变化，我们在定义时锁定实体，实际上是在接口设计阶段就将实体的作用范畴定义好了。我的观点是，设计优先于实现，因此我更推荐第二种方案。此外，锁定还会影响到文档的生成，文档中的实体只会渲染出锁定 <code>scope</code> 的字段，不会生成不会返回的其他的字段。这对前端查看文档时更友好。</p>
+<p>我们在 <code>ArticleEntity</code> 内添加一个新的用不上的字段：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ArticleEntity</span> &lt; Meta::Entity</span></span><br><span class="line">  property <span class="symbol">:title</span></span><br><span class="line">  property <span class="symbol">:content</span>, <span class="symbol">scope:</span> <span class="string">&#x27;full&#x27;</span></span><br><span class="line">  property <span class="symbol">:foo</span>, <span class="symbol">scope:</span> <span class="string">&#x27;foo&#x27;</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>则 <code>ArticleEntity.locked(scope: &#39;full&#39;)</code> 不仅实现时只会返回 <code>title</code>、<code>content</code> 字段，文档渲染时也只会出现 <code>title</code>、<code>content</code> 这两个字段。</p>
+<p><strong>这一节的思想是：只用写一遍实体，在不同的场合下使用。</strong>这条思想同时也是下一节的思想。</p>
+<h3 id="参数上的锁定：在参数上区分不同的场合"><a href="#参数上的锁定：在参数上区分不同的场合" class="headerlink" title="参数上的锁定：在参数上区分不同的场合"></a>参数上的锁定：在参数上区分不同的场合</h3><p>与返回值一样，参数也需要根据不同的场合修改不同的字段。我们定义一个参数实体：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ExampleEntity</span> &lt; Meta::Entity</span></span><br><span class="line">  property <span class="symbol">:name</span></span><br><span class="line">  property <span class="symbol">:age</span></span><br><span class="line">  property <span class="symbol">:password</span>, <span class="symbol">scope:</span> <span class="string">&#x27;master&#x27;</span></span><br><span class="line">  property <span class="symbol">:created_at</span>, <span class="symbol">scope:</span> <span class="string">&#x27;admin&#x27;</span></span><br><span class="line">  property <span class="symbol">:updated_at</span>, <span class="symbol">scope:</span> <span class="string">&#x27;admin&#x27;</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>它设定有两个 <code>scope</code>，在两种场合下能够修改的字段不同。我们在实现时，可以在参数定义时使用锁定技术：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Admin::UsersController</span> &lt; ApplicationController</span></span><br><span class="line">  route <span class="string">&#x27;/admin/users&#x27;</span>, <span class="symbol">:put</span> <span class="keyword">do</span></span><br><span class="line">    params <span class="keyword">do</span></span><br><span class="line">      param <span class="symbol">:user</span>, <span class="symbol">ref:</span> ExampleEntity.locked(<span class="symbol">scope:</span> <span class="string">&#x27;admin&#x27;</span>)</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">update</span></span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UsersController</span> &lt; ApplicationController</span></span><br><span class="line">  route <span class="string">&#x27;/user&#x27;</span>, <span class="symbol">:put</span> <span class="keyword">do</span></span><br><span class="line">    params <span class="keyword">do</span></span><br><span class="line">      param <span class="symbol">:user</span>, <span class="symbol">ref:</span> ExampleEntity.locked(<span class="symbol">scope:</span> <span class="string">&#x27;master&#x27;</span>)</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">example</span></span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>这在实现上和文档上能同时响应。</p>
+<h3 id="参数上的锁定：处理缺失参数"><a href="#参数上的锁定：处理缺失参数" class="headerlink" title="参数上的锁定：处理缺失参数"></a>参数上的锁定：处理缺失参数</h3><p>先声明一个 HTTP 相关的背景。对于缺失的参数，HTTP 提供了两种语义的方法：</p>
+<ol>
+<li><code>PUT</code> 请求需要提供完整的实体，包括所有字段。如果某个字段缺失，将按照该字段传递了一个 <code>nil</code> 值处理。</li>
+<li><code>PATCH</code> 请求只用提供需要更新的字段。如果某个字段缺失，将表示这个字段不需要被更新。</li>
+</ol>
+<p>这里面涉及到的是对于参数中缺失值如何处理。换言之，对于实体：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserEntity</span> &lt; Meta::Entity</span></span><br><span class="line">  property <span class="symbol">:name</span></span><br><span class="line">  property <span class="symbol">:age</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>如果用户请求只传递了 <code>&#123; &quot;name&quot;: &quot;Jim&quot; &#125;</code>，调用 <code>params_on_schema</code> 会返回什么呢？是</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123; <span class="attr">&quot;name&quot;</span>: <span class="string">&quot;Jim&quot;</span>, <span class="attr">&quot;age&quot;</span>: <span class="literal">null</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>还是</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123; <span class="attr">&quot;name&quot;</span>: <span class="string">&quot;Jim&quot;</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>呢？</p>
+<p>两者的区分在于前者将缺失值设为 <code>nil</code>，后者丢弃了缺失值。注意这两种数据作为参数传递到 <code>user.update!</code> 方法中，其效果是不同的。</p>
+<p>控制这种效果的方式也是通过锁定设置 <code>discard_missing:</code> 选项。</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UsersController</span> &lt; ApplicationController</span></span><br><span class="line">  <span class="comment"># PUT 效果，默认情况，参数始终返回完整实体</span></span><br><span class="line">  route <span class="string">&#x27;/users/:id&#x27;</span>, <span class="symbol">:put</span> <span class="keyword">do</span></span><br><span class="line">    params <span class="keyword">do</span></span><br><span class="line">      param <span class="symbol">:user</span>, <span class="symbol">ref:</span> UserEntity <span class="comment"># 或 UserEntity.locked(discard_missing: false)，等效</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">replace</span></span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">    </span><br><span class="line">  <span class="comment"># PATCH 效果，参数丢弃未传递的字段</span></span><br><span class="line">  route <span class="string">&#x27;/users/:id&#x27;</span>, <span class="symbol">:patch</span> <span class="keyword">do</span></span><br><span class="line">    params <span class="keyword">do</span></span><br><span class="line">      param <span class="symbol">:ref</span>: UserEntity.locked(<span class="symbol">discard_missing:</span> <span class="literal">true</span>)</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">update</span></span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>总结：只用写一遍实体，在不同的场合下使用。</strong></p>
+<h2 id="深入细节"><a href="#深入细节" class="headerlink" title="深入细节"></a>深入细节</h2><p>最后，我们讲讲 <code>meta-api</code> 有关细节的一些东西吧。它具备基本的参数验证、默认值和转化等逻辑，详细的内容可参考 <a target="_blank" rel="noopener" href="https://github.com/yetrun/web-frame/blob/master/docs/%E6%95%99%E7%A8%8B.md">教程</a> 相关部分。如果文档中出现不友好的部分，欢迎提 ISSUE 改进。</p>
+<h3 id="默认值"><a href="#默认值" class="headerlink" title="默认值"></a>默认值</h3><p>你可以为参数（或实体内的字段）提供默认值，如下：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserEntity</span> &lt; Meta::Entity</span></span><br><span class="line">  property <span class="symbol">:age</span>, <span class="symbol">type:</span> <span class="string">&#x27;integer&#x27;</span>, <span class="symbol">default:</span> <span class="number">18</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="数据验证"><a href="#数据验证" class="headerlink" title="数据验证"></a>数据验证</h3><p>有一些内建的数据验证器，比如：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserEntity</span> &lt; Meta::Entity</span></span><br><span class="line">  property <span class="symbol">:birth_date</span>, <span class="symbol">type:</span> <span class="string">&#x27;string&#x27;</span>, <span class="symbol">format:</span> /\d\d\d\d-\d\d-\d\d/</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>或自定义：</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserEntity</span> &lt; Meta::Entity</span></span><br><span class="line">  property <span class="symbol">:birthday</span>, </span><br><span class="line">    <span class="symbol">type:</span> <span class="string">&#x27;string&#x27;</span>, </span><br><span class="line">    <span class="symbol">validate:</span> -&gt;(value) &#123; raise Meta::JsonSchema::ValidationError(<span class="string">&#x27;日期格式不对&#x27;</span>) <span class="keyword">unless</span> value =~ <span class="regexp">/\d\d\d\d-\d\d-\d\d/</span>&#125;</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="枚举"><a href="#枚举" class="headerlink" title="枚举"></a>枚举</h3><figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserEntity</span> &lt; Meta::Entity</span></span><br><span class="line">  property <span class="symbol">:age</span>, <span class="symbol">type:</span> <span class="string">&#x27;integer&#x27;</span>, <span class="symbol">allowable:</span> [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>] <span class="comment"># 只允许 6 岁以下儿童</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="多态"><a href="#多态" class="headerlink" title="多态"></a>多态</h3><p>真的，它有处理多态的能力，就像 Swagger 文档中提供的那样。我不想在这里讲解了，但请相信，它真的有处理多态的能力。</p>
+<h2 id="最后的说辞"><a href="#最后的说辞" class="headerlink" title="最后的说辞"></a>最后的说辞</h2><p>啥也不说了，我的项目地址目前是在：</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="http://github.com/yetrun/web-frame">http://github.com/yetrun/web-frame</a></p>
+</blockquote>
+<p>所有的意见和建议对我都是有用的。</p>
+<p>如果你遇到 Bug，或者想要新的特性，请提 <a target="_blank" rel="noopener" href="https://github.com/yetrun/web-frame/issues">ISSUE</a>.</p>
+<p>如果你遇到任何使用上的问题，希望快速得到解决，请加群：489579810.</p>
+<p>如果这个项目对你有用，请为它添加一个 star，不胜感激。</p>
+<p>如果你有兴趣为这个项目贡献，欢迎提供 PR.</p>
+<p>我希望为 Rails 提供插件的方式没有对你现在的项目带来任何干扰，并为生成文档方面提供助力。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/10/31/react-vs-vue/" rel="prev" title="React 与 Vue 3 比较（我为什么选择 React）">
+                  <i class="fa fa-chevron-left"></i> React 与 Vue 3 比较（我为什么选择 React）
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/07/09/vue-3-watch-route/" rel="next" title="Vue 3 避坑指南（一）：避免使用 watch(route)">
+                  Vue 3 避坑指南（一）：避免使用 watch(route) <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yet Run</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"yetrun","repo":"yetrun.github.io","client_id":"a386f9dc0f5fe109f2d1","client_secret":"e2a830c7febee5b141b227032f95161f738be604","admin_user":"yetrun","distraction_free_mode":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","js":{"url":"https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.min.js","integrity":"sha256-Pmj85ojLaPOWwRtlMJwmezB/Qg8BzvJp5eTzvXaYAfA="},"path_md5":"a9f0e24e87c52f5d5b490d9de92584bf"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>
