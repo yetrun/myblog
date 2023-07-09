@@ -5,7 +5,7 @@
 ## 准备
 
 ```bash
-$ yarn global add hexo-cli@5.4.0
+$ yarn global add hexo-cli
 $ yarn
 ```
 
