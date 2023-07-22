@@ -1,5 +1,5 @@
 ---
-title: watchEffect 用法建议
+title: Vue 3 避坑指南（二）：watchEffect 用法建议
 date: 2023-07-15 11:18:49
 tags:
 - Vue3
