@@ -116,7 +116,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-count">15</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -151,6 +151,90 @@
 
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://yet.run/2023/07/30/vue-3-computed-property-is-shallow-watch/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yet Run">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yet Run 的小站">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/07/30/vue-3-computed-property-is-shallow-watch/" class="post-title-link" itemprop="url">Vue 3 避坑指南（四）：计算属性是浅监听</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-07-30 15:24:16 / 修改时间：16:55:35" itemprop="dateCreated datePublished" datetime="2023-07-30T15:24:16+08:00">2023-07-30</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>这几篇写的都是有关于 watch 监听的，殊不知计算属性也有监听的味道在里面。类似于 watchEffect，计算属性会自动计算依赖，并依据依赖变化自动更新变量值。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> firstName = ref(<span class="string">&#x27;&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> lastName = ref(<span class="string">&#x27;&#x27;</span>)</span><br><span class="line"><span class="keyword">const</span> fullName = computed(<span class="function">() =&gt;</span> firstName.value + <span class="string">&#x27; &#x27;</span>  + lastName.value)</span><br></pre></td></tr></table></figure>
+
+<h2 id="一个菜单组件的例子"><a href="#一个菜单组件的例子" class="headerlink" title="一个菜单组件的例子"></a>一个菜单组件的例子</h2><p>计算属性也只是浅监听，这点可能和 <code>watchEffect</code> 一样，如果没注意到这一点，可能导致问题的产生。</p>
+<p>假设我们编写一个组件，其中定义一个属性 <code>users</code> 用以传递用户数据。然后我们希望以菜单的形式展示用户数据，这时就需要将属性转化为菜单要求的格式。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- UsersMenu.vue --&gt;</span><br><span class="line">&lt;template&gt;</span><br><span class="line">  &lt;n-menu options=&quot;menuOptions&quot; /&gt;</span><br><span class="line">&lt;/template&gt;</span><br><span class="line"></span><br><span class="line">&lt;script setup&gt;</span><br><span class="line">const props = defineProps(&#123;</span><br><span class="line">  users: Array</span><br><span class="line">&#125;)</span><br><span class="line">const menuOptions = computed(() =&gt; &#123;</span><br><span class="line">  return props.data.map(user =&gt; (&#123;</span><br><span class="line">    key: user.id,</span><br><span class="line">    label: user.firstName + &#x27; &#x27; + user.lastName</span><br><span class="line">  &#125;))</span><br><span class="line">&#125;)</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>以上定义的 <code>UsersMenu</code> 组件，父级组件可以这样使用它：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">  &lt;UsersMenu users=&quot;users&quot; /&gt;</span><br><span class="line">&lt;/template&gt;</span><br><span class="line"></span><br><span class="line">&lt;script setup&gt;</span><br><span class="line">const users = ref([])</span><br><span class="line">const addUser = () =&gt; &#123;</span><br><span class="line">  users.value.push(&#123; id: 1, firstName: &#x27;James&#x27;, lastName: &#x27;Dean&#x27; &#125;)</span><br><span class="line">&#125;</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="计算属性无法监听到内部变化"><a href="#计算属性无法监听到内部变化" class="headerlink" title="计算属性无法监听到内部变化"></a>计算属性无法监听到内部变化</h2><p>如果我们尝试修改 <code>users</code> 内部的数据，像上面的 <code>addUser</code> 函数做的那样，之后会发现 <code>UsersMenu</code> 组件没有任何变化。原因是计算属性只跟踪变量引用的变化，而不会跟踪引用的值内部的变化。所以，当遇到计算属性时，我们要将跟踪的变量赋新值，<code>addUser</code> 改成下面这样就有效果了：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> addUser = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  users.value = [...users.value, &#123; <span class="attr">id</span>: <span class="number">1</span>, <span class="attr">firstName</span>: <span class="string">&#x27;James&#x27;</span>, <span class="attr">lastName</span>: <span class="string">&#x27;Dean&#x27;</span> &#125;]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="或者使用深度监听"><a href="#或者使用深度监听" class="headerlink" title="或者使用深度监听"></a>或者使用深度监听</h2><p>现实中我们很难猜到 <code>UsersMenu</code> 组件不监听内部元素的变化，某种感觉上不像 Vue 的思维。我们要想让 <code>UsersMenu</code> 组件能够监听内部元素的变化，针对 <code>users</code>  属性我们就不用计算函数了，改用深度监听：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- UsersMenu.vue --&gt;</span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">template</span>&gt;</span></span></span><br><span class="line"><span class="xml">  <span class="tag">&lt;<span class="name">n-menu</span> <span class="attr">options</span>=<span class="string">&quot;menuOptions&quot;</span> /&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;/<span class="name">template</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">script</span> <span class="attr">setup</span>&gt;</span><span class="javascript"></span></span></span><br><span class="line"><span class="javascript"><span class="xml"><span class="keyword">const</span> props = defineProps(&#123;</span></span></span><br><span class="line"><span class="javascript"><span class="xml">  <span class="attr">users</span>: <span class="built_in">Array</span></span></span></span><br><span class="line"><span class="javascript"><span class="xml">&#125;)</span></span></span><br><span class="line"><span class="javascript"><span class="xml"><span class="keyword">const</span> menuOptions = []</span></span></span><br><span class="line"><span class="javascript"><span class="xml">watch(<span class="function">() =&gt;</span> props.users, <span class="function">() =&gt;</span> &#123;</span></span></span><br><span class="line"><span class="javascript"><span class="xml">  menuOptions = props.data.map(<span class="function"><span class="params">user</span> =&gt;</span> (&#123;</span></span></span><br><span class="line"><span class="javascript"><span class="xml">    <span class="attr">key</span>: user.id,</span></span></span><br><span class="line"><span class="javascript"><span class="xml">    <span class="attr">label</span>: user.firstName + <span class="string">&#x27; &#x27;</span> + user.lastName</span></span></span><br><span class="line"><span class="javascript"><span class="xml">  &#125;))</span></span></span><br><span class="line"><span class="javascript"><span class="xml">&#125;, &#123; <span class="attr">immediate</span>: <span class="literal">true</span>, <span class="attr">deep</span>: <span class="literal">true</span> &#125;)</span></span></span><br><span class="line"><span class="javascript"><span class="xml"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+
+<p>这样在使用 <code>UsersMenu</code> 上就没有什么限制了，父组件可以恢复成最开始的写法。</p>
+<blockquote>
+<p>但是，这样就没有问题了吗？频繁地使用深度监听会降低应用的性能，因此完全杜绝深度监听而使用函数式思维，可能是打开 Vue 使用的另一扇大门。但这样的话，我为什么不用 React 呢？</p>
+</blockquote>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -840,93 +924,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2021/12/13/web-frontend-scaffold/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://yet.run/2021/11/02/vue-list-page/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yet Run">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yet Run 的小站">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/11/02/vue-list-page/" class="post-title-link" itemprop="url">Vue 数据列表页的写法参考</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2021-11-02 11:52:54" itemprop="dateCreated datePublished" datetime="2021-11-02T11:52:54+08:00">2021-11-02</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2023-07-09 10:55:36" itemprop="dateModified" datetime="2023-07-09T10:55:36+08:00">2023-07-09</time>
-      </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>常规的管理系统开发（以及部分用户端原型的开发），涉及到列表页、详情页、编辑页、新建页。据我多年的开发经验获悉，每一种类型的页面，开发者都应有一套固定的写法。这一篇讲列表页的固定写法。</p>
-<p>列表页，如果考虑功能齐全，应包括：</p>
-<ul>
-<li>展示一个数据列表</li>
-<li>支持若干筛选项目</li>
-<li>支持分页浏览</li>
-<li>支持全文搜索</li>
-<li>支持排序</li>
-</ul>
-<p>本文分两个阶段介绍，第二阶段相比第一阶段增加了 vue-router 的考虑。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2021/11/02/vue-list-page/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
