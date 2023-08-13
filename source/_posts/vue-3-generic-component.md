@@ -12,6 +12,8 @@ tags:
 
 <!-- more -->
 
+## 基本介绍
+
 下面是一个简单的 List 组件，父组件通过一个自定义的函数来渲染 key 和 label：
 
 ```html
@@ -67,3 +69,28 @@ const renderAddressLabel = (address: Address) => address.details
 甭管我们为什么会将 `renderAddressLabel` 传递给 `renderLabel` 属性，反正这是一个错误。但整段代码是能编译通过的。而如果我们能有范型，将 `ListItems` 用 `User` 类型绑定，那么 `renderLabel` 属性就会提示我们错误。但可惜，并不能使用范型。
 
 *归根结底是因为，Vue 3 的单文件模板不支持范型组件。*
+
+## 补充介绍
+
+有关 Vue 3 支持范型组件的方案，其实有支持的办法。方法是通过原生的 `defineComponent` 方法再结合 TSX. 以下是我找到的相关资料：
+
+> [Vue 3 怎么写带泛型的组件？ - 崮生的回答 - 知乎](https://www.zhihu.com/question/440637299/answer/1697377342)
+
+按照这个方案呢，我没有验证。但是有一个明显的问题，每次用到一个类型时，就会创建一个新的组件。也就是说 `List<number>` 和 `List<string>` 是两个组件。所以，我有所怀疑这是不是最好的方案，或者说不存在一个真正的基于原生 `defineComponent` 函数的范型方案。
+
+另外，和我论坛里讨论的热心开发者 **[agileago](https://www.v2ex.com/member/agileago)** 的工作成果，它的框架是可以使用范型组件和类型插槽的。但用起来还有些不明白的地方，需要声明一些额外的东西。有兴趣的读者详见它的 GitHub 成果：
+
+> [agileago/vue3-oop](https://github.com/agileago/vue3-oop)
+
+此外，据小道消息所说 Vue 3 官方打算为单文件组件引入范型，其语法大致是：
+
+```vue
+<script setup generic="T">
+// 其中的 T 就是范型，例如
+defineProps<{
+  items: T[]
+}
+</script>
+```
+
+有关范型方面的内容我就只做这些研究了，其中最让人期待的是 Vue 3 单文件组件引入的范型声明语法。毕竟，如果因为范型而放弃单文件组件转而使用 TSX，实在是两难的取舍。
