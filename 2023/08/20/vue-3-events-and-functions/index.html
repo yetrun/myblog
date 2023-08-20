@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"yet.run","root":"/","images":"/images","scheme":"Pisces","version":"8.7.1","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<meta name="description" content="Vue 3 使用 v-on 指令表示事件。我们知道 React 中没有事件的，它只有属性的概念。事件是通过函数属性表示的，也就是“回调函数”。既然这样，同样的一个效果，在 Vue 3 中既可以使用事件实现，也可以使用函数属性实现，在实际开发中我们应该怎么抉择呢？">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vue 3 避坑指南（六）：使用事件还是函数">
+<meta property="og:url" content="https://yet.run/2023/08/20/vue-3-events-and-functions/index.html">
+<meta property="og:site_name" content="Yet Run 的小站">
+<meta property="og:description" content="Vue 3 使用 v-on 指令表示事件。我们知道 React 中没有事件的，它只有属性的概念。事件是通过函数属性表示的，也就是“回调函数”。既然这样，同样的一个效果，在 Vue 3 中既可以使用事件实现，也可以使用函数属性实现，在实际开发中我们应该怎么抉择呢？">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-08-20T01:47:32.000Z">
+<meta property="article:modified_time" content="2023-08-20T02:33:37.891Z">
+<meta property="article:author" content="Yet Run">
+<meta property="article:tag" content="避坑指南">
+<meta property="article:tag" content="Vue 3">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://yet.run/2023/08/20/vue-3-events-and-functions/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://yet.run/2023/08/20/vue-3-events-and-functions/","path":"2023/08/20/vue-3-events-and-functions/","title":"Vue 3 避坑指南（六）：使用事件还是函数"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Vue 3 避坑指南（六）：使用事件还是函数 | Yet Run 的小站</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Yet Run 的小站</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B%E4%B8%80%EF%BC%9AFetchLoading-%E7%BB%84%E4%BB%B6"><span class="nav-number">1.</span> <span class="nav-text">示例一：FetchLoading 组件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%87%BD%E6%95%B0%E5%B1%9E%E6%80%A7"><span class="nav-number">1.1.</span> <span class="nav-text">使用函数属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E4%BA%8B%E4%BB%B6"><span class="nav-number">1.2.</span> <span class="nav-text">使用事件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B%E4%BA%8C%EF%BC%9ATodoList-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%96%B0%E5%A2%9E%E5%8A%A8%E4%BD%9C"><span class="nav-number">2.</span> <span class="nav-text">示例二：TodoList 组件的新增动作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%87%BD%E6%95%B0"><span class="nav-number">2.1.</span> <span class="nav-text">使用函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E4%BA%8B%E4%BB%B6-1"><span class="nav-number">2.2.</span> <span class="nav-text">使用事件</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-overview">
+            <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yet Run</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yet.run/2023/08/20/vue-3-events-and-functions/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yet Run">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yet Run 的小站">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Vue 3 避坑指南（六）：使用事件还是函数
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-08-20 09:47:32 / 修改时间：10:33:37" itemprop="dateCreated datePublished" datetime="2023-08-20T09:47:32+08:00">2023-08-20</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>Vue 3 使用 <code>v-on</code> 指令表示事件。我们知道 React 中没有事件的，它只有属性的概念。事件是通过函数属性表示的，也就是“回调函数”。既然这样，同样的一个效果，在 Vue 3 中既可以使用事件实现，也可以使用函数属性实现，在实际开发中我们应该怎么抉择呢？</p>
+<span id="more"></span>
+
+<h2 id="示例一：FetchLoading-组件"><a href="#示例一：FetchLoading-组件" class="headerlink" title="示例一：FetchLoading 组件"></a>示例一：<code>FetchLoading</code> 组件</h2><p><code>FetchLoading</code> 是一个组件，它内部可以执行一个异步任务，在任务执行期间一直显示 <em>loading</em> 效果。该异步任务可通过事件或函数属性传递，我们分别来实现。</p>
+<h3 id="使用函数属性"><a href="#使用函数属性" class="headerlink" title="使用函数属性"></a>使用函数属性</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- FetchLoading.vue --&gt;</span><br><span class="line">&lt;script setup lang=&quot;ts&quot;&gt;</span><br><span class="line">const props = defineProps&lt;&#123;</span><br><span class="line">  fetch: () =&gt; Promise&lt;void&gt;</span><br><span class="line">&#125;&gt;()</span><br><span class="line"></span><br><span class="line">const loaded = ref(false)</span><br><span class="line">onMounted(async () =&gt; &#123;</span><br><span class="line">  await props.fetch()</span><br><span class="line">  loaded.value = true</span><br><span class="line">&#125;)</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>则使用者可以通过传递一个异步函数即可实现 loading 效果（假设 <code>fetchData</code> 就是一个异步函数）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;FetchLoading :fetch=&quot;fetchData&quot; /&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用事件"><a href="#使用事件" class="headerlink" title="使用事件"></a>使用事件</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- FetchLoading.vue --&gt;</span><br><span class="line">&lt;script setup lang=&quot;ts&quot;&gt;</span><br><span class="line">const emit = defineEmits&lt;&#123;</span><br><span class="line">  (e: &#x27;loading&#x27;, loaded: () =&gt; void)</span><br><span class="line">&#125;&gt;()</span><br><span class="line"></span><br><span class="line">const loaded = ref(false)</span><br><span class="line">onMounted(async () =&gt; &#123;</span><br><span class="line">  emit(&#x27;loading&#x27;, () =&gt; loaded.value = true)</span><br><span class="line">&#125;)</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>则使用者在响应事件时，需要在异步任务执行后通知 <code>FetchLoading</code>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;FetchLoading @loading=&quot;async (loaded) =&gt; &#123;</span><br><span class="line">  await fetchData()</span><br><span class="line">  loaded()</span><br><span class="line">&#125;&quot; /&gt;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>通过对比发现，响应事件需要传递额外的参数以实现后续的控制，而函数属性没有这样的要求。一般来说，这种<strong>持续性的状态响应不适合用事件来处理</strong>，事件在点控的时机最为合适，比如 <code>on-click</code> 等。放在这里应该是 <code>before-loading</code>、<code>after-loading</code>. 另一方面，作为执行逻辑的一环，使用函数式属性比较合适。这可以看作是设计模式中的模板模式。</p>
+</blockquote>
+<h2 id="示例二：TodoList-组件的新增动作"><a href="#示例二：TodoList-组件的新增动作" class="headerlink" title="示例二：TodoList 组件的新增动作"></a>示例二：<code>TodoList</code> 组件的新增动作</h2><p><strong>场景：</strong>点击“新增”按钮，出现一个输入框，输入内容后按下 Enter 键，执行新增动作并让输入框消失。新增的动作可能出错，出错信息需要显示在输入框的下方，此时输入框不消失。也就是说，只有当新增动作成功后，输入框才可以消失，否则一直显示错误信息。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- TodoList.vue --&gt;</span><br><span class="line">&lt;template&gt;</span><br><span class="line">  &lt;button @click=&quot;showInput = true&quot;&gt;新增&lt;/button&gt;</span><br><span class="line">  &lt;div v-show=&quot;showInput&quot; &gt;</span><br><span class="line">    &lt;input v-model=&quot;newItem&quot; @keyup:enter=&quot;addItem&quot;&gt;</span><br><span class="line">    &lt;span&gt;&#123;&#123; errorMessge &#125;&#125;&lt;/span&gt;</span><br><span class="line">  &lt;/div&gt;</span><br><span class="line">&lt;/template&gt;</span><br><span class="line">&lt;script setup lang=&quot;ts&quot;&gt;</span><br><span class="line">const showInput = ref(false) // 是否显示新增输入框</span><br><span class="line">const errorMessage = ref(&#x27;&#x27;) // 显示错误信息</span><br><span class="line">const newItem = ref(&#x27;&#x27;)      // 绑定输入框的内容</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>以上的关键在于是通过事件接受新增动作还是函数属性，以及 <code>addItem</code> 如何实现。</p>
+<h3 id="使用函数"><a href="#使用函数" class="headerlink" title="使用函数"></a>使用函数</h3><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> props = defineProps&lt;&#123;</span><br><span class="line">  <span class="attr">addItem</span>: <span class="function">() =&gt;</span> <span class="built_in">Promise</span>&lt;<span class="built_in">void</span>&gt;</span><br><span class="line">&#125;&gt;()</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> addItem = <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">await</span> props.addItem(newItem.value)</span><br><span class="line">    showInput.value = <span class="literal">false</span> <span class="comment">// 隐藏输入框</span></span><br><span class="line">    newItem.value = <span class="string">&#x27;&#x27;</span>      <span class="comment">// 清空输入框的内容</span></span><br><span class="line">  &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">    <span class="keyword">if</span> (e <span class="keyword">instanceof</span> AddItemError) &#123; <span class="comment">// 仅接受 AddItemError</span></span><br><span class="line">      errorMessage.value = e.message</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">throw</span> e</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用者：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">  &lt;TodoList :add-item=&quot;addItem&quot; /&gt;</span><br><span class="line">&lt;/template&gt;</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line">const addItem = async (value: string) =&gt; &#123;</span><br><span class="line">  try &#123;</span><br><span class="line">    await remoteSaveItem(value)</span><br><span class="line">  &#125; catch (e) &#123;</span><br><span class="line">    throw new AddItemError(e.message) // 转换成 TodoList 要求的异常格式</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用事件-1"><a href="#使用事件-1" class="headerlink" title="使用事件"></a>使用事件</h3><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> emit = defineEmits&lt;&#123;</span><br><span class="line">  (e: <span class="string">&#x27;add-item&#x27;</span>, <span class="attr">value</span>: <span class="built_in">string</span>): <span class="built_in">void</span></span><br><span class="line">&#125;&gt;()</span><br><span class="line"></span><br><span class="line"><span class="comment">// finish 函数，其接受一个错误消息参数。如果错误消息为空白，则让输入框消失。</span></span><br><span class="line"><span class="keyword">const</span> finish = <span class="function">(<span class="params">errorMessage: <span class="built_in">string</span></span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (errorMessage) &#123;</span><br><span class="line">    errorMessage.value = errorMessage</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    showInput.value = <span class="literal">false</span> <span class="comment">// 隐藏输入框</span></span><br><span class="line">    newItem.value = <span class="string">&#x27;&#x27;</span>      <span class="comment">// 清空输入框的内容</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">const</span> addItem = <span class="function">() =&gt;</span> &#123;</span><br><span class="line">  emit(<span class="string">&#x27;add-item&#x27;</span>, newItem.value, finish)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用者：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">  &lt;TodoList @add-item=&quot;addItem&quot; /&gt;</span><br><span class="line">&lt;/template&gt;</span><br><span class="line"></span><br><span class="line">&lt;script setup&gt;</span><br><span class="line">const addItem = async (value: string，finish: (errorMessage: string) =&gt; void) =&gt; &#123;</span><br><span class="line">  try &#123;</span><br><span class="line">    await remoteSaveItem(value)</span><br><span class="line">    finish(null)</span><br><span class="line">  &#125; catch (e) &#123;</span><br><span class="line">    finish(e.message)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这是一个使用事件较为合适的例子。可以发现，在这个例子里，无论是使用函数属性还是事件，其代码量不相上下。这种作为点控的操作模式适合事件来处理，我个人倾向于使用事件，它比需要转化为一个特定异常的函数式属性更为合适。当然，也就只有函数属性能实现这样的效果，因为事件无法获取回调函数执行后的结果。</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E9%81%BF%E5%9D%91%E6%8C%87%E5%8D%97/" rel="tag"># 避坑指南</a>
+              <a href="/tags/Vue-3/" rel="tag"># Vue 3</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/08/06/vue-3-generic-component/" rel="prev" title="Vue 3 避坑指南（五）：缺乏范型组件的支持">
+                  <i class="fa fa-chevron-left"></i> Vue 3 避坑指南（五）：缺乏范型组件的支持
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yet Run</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"yetrun","repo":"yetrun.github.io","client_id":"a386f9dc0f5fe109f2d1","client_secret":"e2a830c7febee5b141b227032f95161f738be604","admin_user":"yetrun","distraction_free_mode":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","js":{"url":"https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.min.js","integrity":"sha256-Pmj85ojLaPOWwRtlMJwmezB/Qg8BzvJp5eTzvXaYAfA="},"path_md5":"c086533d94b96fcd6379c5d61dd42267"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>
