@@ -185,7 +185,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2026-03-01 17:43:00 / 修改时间：17:43:19" itemprop="dateCreated datePublished" datetime="2026-03-01T17:43:00+08:00">2026-03-01</time>
+      <time title="创建时间：2026-03-01 17:43:00 / 修改时间：17:45:34" itemprop="dateCreated datePublished" datetime="2026-03-01T17:43:00+08:00">2026-03-01</time>
     </span>
 
   
@@ -225,114 +225,14 @@
 </ol>
 <p>总之，这里面有许多东西需要处理和记忆，初看之下还会有些混乱。这篇文章就是在梳理这些内容。</p>
 <p><em>由于篇幅有限，我只捡重要的讲。除了宣导之外，还能帮助我记忆。</em></p>
-<h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><h3 id="1-支持函数作为自定义组件"><a href="#1-支持函数作为自定义组件" class="headerlink" title="1. 支持函数作为自定义组件"></a>1. 支持函数作为自定义组件</h3><p>在大多数情况下，我们可以直接使用函数作为自定义组件。例如，常见的 MSE Loss 我们可以直接实现为一个函数：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">mse_loss</span>(<span class="params">y_true, y_pred</span>):</span></span><br><span class="line">    <span class="keyword">return</span> tf.reduce_mean((y_pred - y_true) ** <span class="number">2</span>)</span><br></pre></td></tr></table></figure>
-
-<p><em>最近被 TensorFlow 种草了，所以这里直接使用 TensorFlow 语法，没有使用 <code>keras.ops</code>.</em></p>
-<p>支持函数作为自定义组件的有：</p>
-<ul>
-<li>自定义 Initializer</li>
-<li>自定义 Regularizer</li>
-<li>自定义 Constraint</li>
-<li>自定义 Activation Function</li>
-<li>自定义 Loss</li>
-<li>自定义 Metrics</li>
-</ul>
-<p>除了 Layer、Model，其余的组件都支持传递函数作为自定义组件，Keras 会自动帮你处理好剩下的工作。</p>
-<h3 id="2-继承特定的基类实现自定义组件"><a href="#2-继承特定的基类实现自定义组件" class="headerlink" title="2. 继承特定的基类实现自定义组件"></a>2. 继承特定的基类实现自定义组件</h3><p>几乎所有的组件都支持继承某个基类实现自定义组件（而且这极有可能就是内部统一实现的方式）。</p>
-<blockquote>
-<p>目的：当使用类作为自定义组件的时候，我们往往是希望通过这种方式声明自定义组件的内部状态。</p>
-</blockquote>
-<p>例如 MSE 内部计算使用乘方的方式（即幂运算的指数为 2），我们希望定义一个指定指数的 Loss 函数，这时可通过继承基类的方式实现：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MPE</span>(<span class="params">keras.losses.Loss</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, exponent: <span class="built_in">int</span></span>):</span></span><br><span class="line">        self.exponent = exponent</span><br><span class="line">                </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">call</span>(<span class="params">self, y_true, y_pred</span>):</span></span><br><span class="line">        <span class="keyword">return</span> tf.reduce_mean((y_pred - y_true) ** self.exponent)</span><br></pre></td></tr></table></figure>
-
-<p>当然，基于 Python 语言的特性，你总是可以利用闭包完成一样的效果：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">create_mpe_loss</span>(<span class="params">exponent: <span class="built_in">int</span></span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">mpe_loss</span>(<span class="params">y_true, y_pred</span>):</span></span><br><span class="line">        <span class="keyword">return</span> tf.reduce_mean((y_pred - y_true) ** exponent)</span><br><span class="line">    <span class="keyword">return</span> mpe_loss</span><br></pre></td></tr></table></figure>
-
-<p>因此，这绝不是继承基类的唯一能力。如果我们的自定义组件有内部状态，并且希望保存到模型，就只有继承基类的方式能够帮我们做到了。这时我们要在自定义类下实现 <code>get_config</code> 方法：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MPE</span>(<span class="params">keras.losses.Loss</span>):</span></span><br><span class="line">    <span class="comment"># ...前面的实现...</span></span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_config</span>(<span class="params">self</span>):</span></span><br><span class="line">        config = <span class="built_in">super</span>().get_config()</span><br><span class="line">        <span class="keyword">return</span> &#123;**config, <span class="string">&quot;exponent&quot;</span>: self.exponent&#125;</span><br></pre></td></tr></table></figure>
-
-<p>其内部的逻辑是，模型会在加载时，将 <code>get_config</code> 返回的值通过构造函数传递给 MPE 类，从而恢复原来的状态。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">keras.models.load_model(<span class="string">&quot;/path/to/model&quot;</span>, custom_objects=&#123;<span class="string">&quot;MPE&quot;</span>: MPE&#125;)</span><br></pre></td></tr></table></figure>
-
-<p><strong>注意：一定要将 MPE 类通过 <code>custom_objects</code> 参数传递进去。</strong></p>
-<p>基类继承的列表参考：</p>
-<ul>
-<li>自定义 Initializer: <code>keras.Initializer</code></li>
-<li>自定义 Regularizer: <code>keras.Regularizer</code></li>
-<li>自定义 Constraint: <code>keras.Constraint</code></li>
-<li>自定义 Activation Function: 无</li>
-<li>自定义 Loss: <code>keras.losses.Loss</code></li>
-<li>自定义 Metrics: <code>keras.metrics.Metric</code></li>
-<li>自定义 Layer: <code>keras.Layer</code></li>
-<li>自定义 Model: <code>keras.Model</code></li>
-</ul>
-<blockquote>
-<p>注意：</p>
-<ol>
-<li>Activation Function 我标记为无，也就是说激活函数不应该再有内部状态了。</li>
-<li>当我们想要用继承基类的方式自定义 Activation Function 的时候，需要继承自 <code>keras.Layer</code>，其本质是一个可训练的层。这是我查阅最新资料得到的回答。</li>
-<li>总之，自定义 Initializer、Regularizer、Constraint、Activation Function 这些有些特殊，它们是与 Dense 层深深绑定的。如果有机会，我去调研一下再讲。</li>
-</ol>
-</blockquote>
-<h3 id="3-理解继承基类的工作流"><a href="#3-理解继承基类的工作流" class="headerlink" title="3. 理解继承基类的工作流"></a>3. 理解继承基类的工作流</h3><p>在继承基类的时候，要实现不同的方法才能使其工作，我给它总结成几种情况：</p>
-<ul>
-<li>直接实现 <code>__call__</code> 方法：这种适用于内部没有特殊工作流的，直接作为纯函数使用的，包括 Initializer、Regularizer、Constraint.</li>
-<li>实现 <code>call</code> 方法：基类已经实现了 <code>__call__</code> 方法，并有特殊流程，子类需要实现的是 <code>call</code> 方法。这类包括 Activation Function、Loss、Layer、Model.</li>
-<li>Metris 方法有些特殊，子类需要实现 <code>update_state</code>、<code>result</code>、<code>reset_state</code> 方法。</li>
-</ul>
-<p>常规的我不想说了，只说两个特殊的点吧。</p>
-<p>第一个是 Metrics. 我说过它有些特殊，子类不是实现 <code>__call__</code> 或 <code>call</code> 方法，而是需要实现 <code>update_state</code>、<code>result</code>、<code>reset_state</code> 方法。（虽然 <code>reset_state</code> 不用实现，但我建议你在实践时还是一起实现它，毕竟有时候清晰比隐晦更友好）</p>
-<p>这要从理解它的工作流讲起。当模型投入训练时，Metrics 即指标需要在内部维护它的状态，这就造成了它 “更新” - “获取结果” - “重置状态” 的工作模式：</p>
-<ol>
-<li>在每一批次数据训练结束后，Metrics 接受训练结果更新内部的状态，这时调用的是 <code>update_state</code> 方法；</li>
-<li>当一整代的数据训练结束后，Keras 调用 Metrics 的 result 方法获取这一代数据的指标；</li>
-<li>然后 Keras 调用 <code>reset_state</code> 方法以准备下一代的训练。</li>
-</ol>
-<p>一个例子有利于理解上面的工作模式。现在我们实现一个自定义 Metrics，计算模型训练的准确率。</p>
-<blockquote>
-<p>正确率（Accuracy）表示的是模型预测正确的样本数占总样本数的比例，其公式为 (预测正确的样本数) / (总样本数)。而我们这里所说的准确率与正确率不同。</p>
-<p>相比于衡量样本整体的预测情况，我们有时更关心模型中正类样本的预测情况，这催生出两种衡量指标 “准确率” 和 “召回率”。</p>
-<ul>
-<li>准确率（Precision）衡量的是模型预测为“正类”的样本中，有多少是真正的正类。计算公式：(模型预测为正中真实为正的样本数) / (模型预测为正的样本数)。</li>
-<li>召回率（Recall）衡量的是模型找出所有真实正类样本的能力。计算公式：(真实为正的样本中预测为正的样本数) / (真实为正的样本数)。</li>
-</ul>
-</blockquote>
-<p>实现“准确率”指标，要做的是在内部维护两个状态：模型预测为正的样本数、模型和真实都为正的样本数。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PrecisionMetrics</span>(<span class="params">keras.Metric</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, **kwargs</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__(**kwargs)</span><br><span class="line">        self.predicted_positives = self.add_variable(name=<span class="string">&#x27;pp&#x27;</span>, initializer=<span class="string">&#x27;zeros&#x27;</span>)</span><br><span class="line">        self.true_positives = self.add_variable(name=<span class="string">&#x27;tp&#x27;</span>, initializer=<span class="string">&#x27;zeros&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">update_state</span>(<span class="params">self, y_true, y_pred, sample_weight=<span class="literal">None</span></span>):</span></span><br><span class="line">        y_pred = tf.<span class="built_in">round</span>(y_pred)  <span class="comment"># y_pred 通常不是 0/1 值，而是一个概率</span></span><br><span class="line">        pp = tf.reduce_sum(tf.cast(y_pred, <span class="string">&#x27;float32&#x27;</span>))</span><br><span class="line">        tp = tf.reduce_sum(tf.cast(y_true * y_pred, <span class="string">&#x27;float32&#x27;</span>))</span><br><span class="line">        self.predicted_positives.assign_add(pp)</span><br><span class="line">        self.true_positives.assign_add(tp)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">result</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">return</span> self.true_positives / (self.predicted_positives + <span class="number">1e-7</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">reset_states</span>(<span class="params">self</span>):</span></span><br><span class="line">        self.predicted_positives.assign(<span class="number">0</span>)</span><br><span class="line">        self.true_positives.assign(<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
-
-<p>第二个是自定义 Layer 和 Model，它们的特殊点在于，除了实现常规的 <code>call</code> 方法之外，最好要同步实现 <code>build</code> 方法。这要考虑到 Keras 在构建和运行模型时的工作流了。我将其分为 3 个步骤：</p>
-<ol>
-<li>模型定义阶段；</li>
-<li>模型构建阶段；</li>
-<li>模型运行阶段。</li>
-</ol>
-<p>模型定义阶段，我们只需要构建模型的连接图，例如首先是一个 Dense 层，再接着一个 Relu 激活函数，然后一个卷积层，再是一个 Relu 激活函数，如此等等。因为这个时候不知道上游输入数据的结构，此时模型各个层内部的参数还没有初始化。以 Dense 层为例：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Dense</span>(<span class="params">keras.Layer</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, units, **kwrags</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__(kwargs)</span><br><span class="line">        self.units = units</span><br></pre></td></tr></table></figure>
-
-<p>然后是模型构建阶段。针对模型内部的每一个层（或者是模型连接图的每一个结点），只有当已知上游传递的输入数据的形状时，才能真正地初始化内部参数。这时就是 <code>build</code> 方法工作的时机，以 Dense 层为例：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Dense</span>(<span class="params">keras.Layer</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">build</span>(<span class="params">self, input_shape</span>):</span></span><br><span class="line">        self.w = self.add_weight(shape=(input_shape[-<span class="number">1</span>], self.units), initializer=<span class="string">&#x27;random_normal&#x27;</span>)</span><br><span class="line">        self.b = self.add_weight(shape=(self.units,), initializer=<span class="string">&#x27;zeros&#x27;</span>)</span><br></pre></td></tr></table></figure>
-
-<p><em>在 <code>build</code> 中使用 <code>self.add_weight()</code> 创建的参数会被自动追踪，并包含在 <code>self.trainable_weights</code> 中。</em></p>
-<p>最后是 <code>call</code> 方法，它在真正的计算过程中执行。由于已经在 build 方法中构建好了参数，此时直接执行计算逻辑即可。（请领悟一下 Keras 自定义 Layer 时这种逻辑分离的风格）</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Dense</span>(<span class="params">keras.Layer</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">call</span>(<span class="params">self, inputs</span>):</span></span><br><span class="line">        <span class="keyword">return</span> tf.matmul(inputs, self.w) + self.b</span><br></pre></td></tr></table></figure>
-
-<p>总结：对于自定义 Layer 和 Model，请理解一下这种 “初始化” - “build” - “call” 的工作流。</p>
-<h3 id="4-区分自定义-Layer-和-Model"><a href="#4-区分自定义-Layer-和-Model" class="headerlink" title="4. 区分自定义 Layer 和 Model"></a>4. 区分自定义 Layer 和 Model</h3><p>做完这个议题我就想收尾了。</p>
-<blockquote>
-<p>当我们谈到自定义 Layer 和 Model 的时候，毫无疑问就是在谈继承基类的方式。其实，Keras 是支持将纯函数作为自定义 Layer 的，参考 <code>keras.layers.Lambda</code>. 这里我们暂且忽视这一情况，只将基类继承作为它们俩的自定义方式。</p>
-</blockquote>
-<p>首先，自定义是为了创造某种新的。例如前面的自定义 Loss，我们是希望构建出一种新的损失函数计算方式。同理包括  Initializer、Regularizer、Constraint、Activation Function、Metrics.</p>
-<p>这个时候我们考虑用纯函数实现或者继承基类实现均可。考虑的逻辑是：如果没有内部状态并且实现相对简单，就用纯函数；如果需要保存内部状态或者实现相对复杂，用继承基类。</p>
-<p>当谈到自定义 Layer 和 Model 的时候，情况就有所不同了。自定义 Layer 和 Model 绝对不是为了创造新的，或者你可以理解当我们构造 Layer 和 Model 的时候，一直都是在创造新的。因此，自定义 Layer 和 Model 和我们用 <code>keras.Sequential</code> 或者 函数式构建 的时候，作用其实是一样的，只是实现方式的不同而已。</p>
-<p>所以，自定义 Layer 和 Model 的真实目的在于我们自己组织模型的方式，当我们需要一个整体并对外隐藏某些细节的时候，才是派上它们的用场。要知道，自定义 Layer 和 Model 的代码量明显增多，其要关注的细节也并另外两种模型构建的方式更多。</p>
-<p>自定义 Layer 和 Model 的真实目的在于此，那么自定义 Layer 和自定义 Model 两者有什么区别呢？其实从目前的知识来说，自定义 Model 的目的没有那么明显。如果你认为自定义 Model 带来了更好的组织，那就去用它吧。但从目前的情况看，它并没有带来自定义 Layer 更多的能力。</p>
-<p>模型可以查看、保存和加载，这是自定义 Layer 不具备的能力。但是其他的模型构建方式（Sequential 和 函数式）也有这些能力。</p>
-<p>自定义 Model 最可能的用途（或者不得不为之的方式），是要实现自定义的训练过程。这里要重新实现 <code>keras.Model</code> 的 <code>train_step</code> 方法。我们遇到某些模型时（如 <em>GAN 的对抗训练</em>、<em>特殊梯度更新</em>），这是不得不这样做的方式。这种工作模式确实不那么常见而且有些复杂，如果有机会，我会在后面的文章里再说。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文系统梳理了在 Keras 中实现自定义组件的核心模式与思想。关键在于区分两种实现路径：对于无状态、简单的逻辑，直接传递函数是最优雅的选择；而对于需要内部状态、复杂逻辑或要求完整序列化的组件，则必须继承对应的基类，并实现其特定的方法链（如 call、update_state/result，或 build/call）。</p>
-<p>自定义的终极目的并非为了炫技。对于 Loss、Metric 等，是为了定义新的评估维度；而对于 Layer 和 Model，实质是一种代码组织艺术，旨在封装复杂细节，构建清晰的抽象边界。其中，自定义 Model 的深层价值，往往在需要完全掌控训练循环（如重写 train_step）时才真正显现。</p>
-<p>最后，我仍然要强调阅读原版书籍的重要性。本文的许多洞见直接源于《Hands-On Machine Learning》第12章的启发，而《Deep Learning with Python》则提供了更纯粹的Keras视角。只有深入阅读这些原始材料，你才能理解这些设计选择背后的深层逻辑，而不仅仅是记住几个API的用法。</p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/03/01/keras-customize-components/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
