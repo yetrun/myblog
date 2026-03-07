@@ -197,7 +197,9 @@ ds.interleave(
 
 第一个参数 `map_func` 接受一个 tf.data.Dataset，返回一个 tf.data.Dataset；`cycle_length` 指定交错数；`num_parallel_calls` 指定并行数。
 
-个人意见，当使用交错时，不设置并行数是没有意义的。
+> 个人建议：
+> 1. 当使用交错时，不设置并行数是没有意义的。
+> 2. 内部交错的数据集，其批次数应当相等，否则会造成资源的浪费。
 
 ### 7、unbatch
 
