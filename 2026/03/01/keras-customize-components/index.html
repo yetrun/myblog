@@ -28,7 +28,7 @@
 <meta property="og:description" content="导言首先分享一下最近看的两本书：  《Deep Learning with Python》 《Hands-On Machine Learning with Scikit-Learn, Keras &amp; TensorFlow》  两本书都到第三版了，阅读时请认准英文原版。 其中第一本书 DLWP 我已经基本读完，第二本 HOML 正在阅读。你可以理解为前者主要在讲 Keras，而后者可以深入到">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-03-01T09:43:00.000Z">
-<meta property="article:modified_time" content="2026-03-01T09:45:34.696Z">
+<meta property="article:modified_time" content="2026-03-01T09:59:10.802Z">
 <meta property="article:author" content="Yet Run">
 <meta property="article:tag" content="Keras">
 <meta property="article:tag" content="TensorFlow">
@@ -125,12 +125,12 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-count">19</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-count">16</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
@@ -195,7 +195,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2026-03-01 17:43:00 / 修改时间：17:45:34" itemprop="dateCreated datePublished" datetime="2026-03-01T17:43:00+08:00">2026-03-01</time>
+      <time title="创建时间：2026-03-01 17:43:00 / 修改时间：17:59:10" itemprop="dateCreated datePublished" datetime="2026-03-01T17:43:00+08:00">2026-03-01</time>
     </span>
 
   
@@ -337,7 +337,7 @@
 <p>首先，自定义是为了创造某种新的。例如前面的自定义 Loss，我们是希望构建出一种新的损失函数计算方式。同理包括  Initializer、Regularizer、Constraint、Activation Function、Metrics.</p>
 <p>这个时候我们考虑用纯函数实现或者继承基类实现均可。考虑的逻辑是：如果没有内部状态并且实现相对简单，就用纯函数；如果需要保存内部状态或者实现相对复杂，用继承基类。</p>
 <p>当谈到自定义 Layer 和 Model 的时候，情况就有所不同了。自定义 Layer 和 Model 绝对不是为了创造新的，或者你可以理解当我们构造 Layer 和 Model 的时候，一直都是在创造新的。因此，自定义 Layer 和 Model 和我们用 <code>keras.Sequential</code> 或者 函数式构建 的时候，作用其实是一样的，只是实现方式的不同而已。</p>
-<p>所以，自定义 Layer 和 Model 的真实目的在于我们自己组织模型的方式，当我们需要一个整体并对外隐藏某些细节的时候，才是派上它们的用场。要知道，自定义 Layer 和 Model 的代码量明显增多，其要关注的细节也并另外两种模型构建的方式更多。</p>
+<p>所以，自定义 Layer 和 Model 的真实目的在于我们自己组织模型的方式，当我们需要一个整体并对外隐藏某些细节的时候，才是派上它们的用场。要知道，自定义 Layer 和 Model 的代码量明显增多，其要关注的细节也比另外两种模型构建的方式更多。</p>
 <p>自定义 Layer 和 Model 的真实目的在于此，那么自定义 Layer 和自定义 Model 两者有什么区别呢？其实从目前的知识来说，自定义 Model 的目的没有那么明显。如果你认为自定义 Model 带来了更好的组织，那就去用它吧。但从目前的情况看，它并没有带来自定义 Layer 更多的能力。</p>
 <p>模型可以查看、保存和加载，这是自定义 Layer 不具备的能力。但是其他的模型构建方式（Sequential 和 函数式）也有这些能力。</p>
 <p>自定义 Model 最可能的用途（或者不得不为之的方式），是要实现自定义的训练过程。这里要重新实现 <code>keras.Model</code> 的 <code>train_step</code> 方法。我们遇到某些模型时（如 <em>GAN 的对抗训练</em>、<em>特殊梯度更新</em>），这是不得不这样做的方式。这种工作模式确实不那么常见而且有些复杂，如果有机会，我会在后面的文章里再说。</p>
@@ -363,11 +363,14 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2023/08/06/vue-3-generic-component/" rel="prev" title="Vue 3 避坑指南（五）：缺乏范型组件的支持">
-                  <i class="fa fa-chevron-left"></i> Vue 3 避坑指南（五）：缺乏范型组件的支持
+                <a href="/2023/08/20/vue-3-events-and-functions/" rel="prev" title="Vue 3 避坑指南（六）：使用事件还是函数">
+                  <i class="fa fa-chevron-left"></i> Vue 3 避坑指南（六）：使用事件还是函数
                 </a>
             </div>
             <div class="post-nav-item">
+                <a href="/2026/03/07/tensorflow-data/" rel="next" title="TensorFlow 中是如何处理数据的">
+                  TensorFlow 中是如何处理数据的 <i class="fa fa-chevron-right"></i>
+                </a>
             </div>
           </div>
     </footer>

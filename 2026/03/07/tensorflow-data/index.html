@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"yet.run","root":"/","images":"/images","scheme":"Pisces","version":"8.7.1","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<meta name="description" content="又到了一场周六了。每次就只能在周六的时候才能静下心来写文章，梳理最近的学习和心情。周六很快就来了，又很快过去了。正如这春去秋来，花落花开。 闲言少叙，这次我想梳理的知识点是 tf.data，即 TensorFlow 中如何处理数据的。这是我前面提到的书籍《Hands-On Machine Learning with Scikit-Learn, Keras &amp; TensorFlow》中第 1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TensorFlow 中是如何处理数据的">
+<meta property="og:url" content="https://yet.run/2026/03/07/tensorflow-data/index.html">
+<meta property="og:site_name" content="Yet Run 的小站">
+<meta property="og:description" content="又到了一场周六了。每次就只能在周六的时候才能静下心来写文章，梳理最近的学习和心情。周六很快就来了，又很快过去了。正如这春去秋来，花落花开。 闲言少叙，这次我想梳理的知识点是 tf.data，即 TensorFlow 中如何处理数据的。这是我前面提到的书籍《Hands-On Machine Learning with Scikit-Learn, Keras &amp; TensorFlow》中第 1">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-07T06:20:03.000Z">
+<meta property="article:modified_time" content="2026-03-07T10:02:51.683Z">
+<meta property="article:author" content="Yet Run">
+<meta property="article:tag" content="TensorFlow">
+<meta property="article:tag" content="深度学习">
+<meta property="article:tag" content="数据处理">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://yet.run/2026/03/07/tensorflow-data/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://yet.run/2026/03/07/tensorflow-data/","path":"2026/03/07/tensorflow-data/","title":"TensorFlow 中是如何处理数据的"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>TensorFlow 中是如何处理数据的 | Yet Run 的小站</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Yet Run 的小站</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E7%94%A8%E5%AE%83"><span class="nav-number">1.</span> <span class="nav-text">一、什么时候用它</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C"><span class="nav-number">2.</span> <span class="nav-text">二、基本操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1%E3%80%81batch"><span class="nav-number">2.1.</span> <span class="nav-text">1、batch</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2%E3%80%81shuffle"><span class="nav-number">2.2.</span> <span class="nav-text">2、shuffle</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3%E3%80%81map"><span class="nav-number">2.3.</span> <span class="nav-text">3、map</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4%E3%80%81prefetch"><span class="nav-number">2.4.</span> <span class="nav-text">4、prefetch</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5%E3%80%81cache"><span class="nav-number">2.5.</span> <span class="nav-text">5、cache</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6%E3%80%81interleave"><span class="nav-number">2.6.</span> <span class="nav-text">6、interleave</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7%E3%80%81unbatch"><span class="nav-number">2.7.</span> <span class="nav-text">7、unbatch</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8%E3%80%81rebatch"><span class="nav-number">2.8.</span> <span class="nav-text">8、rebatch</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9%E3%80%81repeat"><span class="nav-number">2.9.</span> <span class="nav-text">9、repeat</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E7%9B%B4%E6%8E%A5%E5%B0%86-tensors-%E6%9E%84%E5%BB%BA%E4%B8%BA%E6%95%B0%E6%8D%AE%E9%9B%86"><span class="nav-number">3.</span> <span class="nav-text">三、直接将 tensors 构建为数据集</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1%E3%80%81%E5%86%8D%E7%9C%8B-from-tensor-slices-%E6%96%B9%E6%B3%95"><span class="nav-number">3.1.</span> <span class="nav-text">1、再看 from_tensor_slices 方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2%E3%80%81%E7%9C%8B%E4%B8%80%E4%B8%8B-from-tensors-%E6%96%B9%E6%B3%95"><span class="nav-number">3.2.</span> <span class="nav-text">2、看一下 from_tensors 方法</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-overview">
+            <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yet Run</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yet.run/2026/03/07/tensorflow-data/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yet Run">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yet Run 的小站">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          TensorFlow 中是如何处理数据的
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-03-07 14:20:03 / 修改时间：18:02:51" itemprop="dateCreated datePublished" datetime="2026-03-07T14:20:03+08:00">2026-03-07</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>又到了一场周六了。每次就只能在周六的时候才能静下心来写文章，梳理最近的学习和心情。周六很快就来了，又很快过去了。正如这春去秋来，花落花开。</p>
+<p>闲言少叙，这次我想梳理的知识点是 tf.data，即 TensorFlow 中如何处理数据的。这是我前面提到的书籍《Hands-On Machine Learning with Scikit-Learn, Keras &amp; TensorFlow》中第 13 章的内容。我还是想要依靠记忆拼凑出想要的知识点。</p>
+<p>首先，在 PyTorch 大行其道的今日，tf.data 应该是 TensorFlow 没有被侵蚀的最主要领域了。某种程度上，它独立于 TensorFlow，并作为有效地工具完成数据预处理的各项任务。</p>
+<span id="more"></span>
+
+<h2 id="一、什么时候用它"><a href="#一、什么时候用它" class="headerlink" title="一、什么时候用它"></a>一、什么时候用它</h2><p>如果仅仅是少量数据，可以全部加载到内存中，你可能不会考虑用它。对于 Keras 来说，直接将所有的数据一次性喂到模型的训练流程中，剩下的框架能为你处理好一切（shuffle、batch）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">x_train, y_train, x_val, y_val = ...  <span class="comment"># 一次性加载所有数据</span></span><br><span class="line"></span><br><span class="line">model.fit(</span><br><span class="line">    x_train, y_train, </span><br><span class="line">    epochs=<span class="number">10</span>, </span><br><span class="line">    batch_size=<span class="number">32</span>, </span><br><span class="line">    validation_data=(x_val, y_val)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>注意以上代码的 <code>batch_size</code>，你只需要指定，训练流程会自动按照这个 batch 加载数据到模型并更新梯度。</p>
+<p>那么，tf.data 适宜什么时候使用呢？答案是：当数据量很大或者数据流程很复杂时。</p>
+<p>数据量很大，指的是数据不能一次性加载到内存中。（或者即使能加载到内存中，但占据了模型训练的空间也是不足取的）通常我们的数据来源是磁盘、数据库甚至是网络。</p>
+<p>数据流程很复杂，是指 tf.data 提供了很多数据转换的工具使用，像数据流程中的 batch、shuffle、transform、并行等。本文将作为一个通识的教程，将介绍这些主要的工具。</p>
+<h2 id="二、基本操作"><a href="#二、基本操作" class="headerlink" title="二、基本操作"></a>二、基本操作</h2><h3 id="1、batch"><a href="#1、batch" class="headerlink" title="1、batch"></a>1、batch</h3><p>首先，batch 不是什么魔法，只需将 batch 理解为数据格式的转换即可，即数据从 N 维变成了 N+1 维。</p>
+<p>首先，我们准备 200 个数的数据集：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">range</span> = tf.<span class="built_in">range</span>(<span class="number">200</span>)</span><br><span class="line">ds = tf.data.Dataset.from_tensor_slices(<span class="built_in">range</span>)</span><br></pre></td></tr></table></figure>
+
+<p>第一次调用 batch（数据流的每条数据格式从 <code>shape=()</code> 变成了 <code>shape=(10,)</code>）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">data = ds.batch(<span class="number">10</span>)</span><br><span class="line"><span class="built_in">list</span>(data)</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>[&lt;tf.Tensor: shape=(<span class="number">10</span>,), dtype=int32, numpy=array([<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>], dtype=int32)&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&lt;tf.Tensor: shape=(<span class="number">10</span>,), dtype=int32, numpy=array([<span class="number">10</span>, <span class="number">11</span>, <span class="number">12</span>, <span class="number">13</span>, <span class="number">14</span>, <span class="number">15</span>, <span class="number">16</span>, <span class="number">17</span>, <span class="number">18</span>, <span class="number">19</span>], dtype=int32)&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&lt;tf.Tensor: shape=(<span class="number">10</span>,), dtype=int32, numpy=array([<span class="number">20</span>, <span class="number">21</span>, <span class="number">22</span>, <span class="number">23</span>, <span class="number">24</span>, <span class="number">25</span>, <span class="number">26</span>, <span class="number">27</span>, <span class="number">28</span>, <span class="number">29</span>], dtype=int32)&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>...</span><br></pre></td></tr></table></figure>
+
+<p>连续调用 batch（第二次调用时，数据流的每条数据格式从 <code>shape=(10,)</code> 变成了 <code>shape=(10,10)</code>）：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">data = ds.batch(<span class="number">10</span>).batch(<span class="number">10</span>)</span><br><span class="line"><span class="built_in">list</span>(data)</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>[&lt;tf.Tensor: shape=(<span class="number">10</span>, <span class="number">10</span>), dtype=int32, numpy=</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>array([[ <span class="number">0</span>,  <span class="number">1</span>,  <span class="number">2</span>,  <span class="number">3</span>,  <span class="number">4</span>,  <span class="number">5</span>,  <span class="number">6</span>,  <span class="number">7</span>,  <span class="number">8</span>,  <span class="number">9</span>],</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>       [<span class="number">10</span>, <span class="number">11</span>, <span class="number">12</span>, <span class="number">13</span>, <span class="number">14</span>, <span class="number">15</span>, <span class="number">16</span>, <span class="number">17</span>, <span class="number">18</span>, <span class="number">19</span>],</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>       [<span class="number">20</span>, <span class="number">21</span>, <span class="number">22</span>, <span class="number">23</span>, <span class="number">24</span>, <span class="number">25</span>, <span class="number">26</span>, <span class="number">27</span>, <span class="number">28</span>, <span class="number">29</span>],</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>...</span><br></pre></td></tr></table></figure>
+
+<p>batch 时需要元素数据是同构的，维度需要一模一样，例如以下方式调用会报错：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ds.batch(<span class="number">150</span>).batch(<span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+
+<p>第一次 batch 导致生成两条数据，维度分别为 <code>(150,)</code> 和 <code>(50,)</code>，再将这两条数据混合为同一个批次即报错。</p>
+<h3 id="2、shuffle"><a href="#2、shuffle" class="headerlink" title="2、shuffle"></a>2、shuffle</h3><p>将训练数据随机打乱是训练的要义，否则你就要受其所害。在 TensorFlow 的数据流里，打乱受到参数 <code>buffer_size</code> 的制约，因为当数据量很大时，你没法实时打乱所有数据。因此，在 TensorFlow 的数据流里，打乱有两种方式：</p>
+<ol>
+<li>提前打乱好所有的数据再喂给数据流；</li>
+<li>接受这种制约，只做局部的打乱。</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ds.shuffle(buffer_size=<span class="number">32</span>)  <span class="comment"># buffer_size 参数是必须要给的</span></span><br></pre></td></tr></table></figure>
+
+<p>我们现在想要弄懂的是，批处理和打乱的先后关系。</p>
+<p>首先，我们准备 100 个数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">range</span> = tf.<span class="built_in">range</span>(<span class="number">100</span>)</span><br><span class="line">ds = tf.data.Dataset.from_tensor_slices(<span class="built_in">range</span>)</span><br></pre></td></tr></table></figure>
+
+<p>然后使用先打乱后批处理的方式：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">data = ds.shuffle(buffer_size=<span class="number">100</span>).batch(<span class="number">10</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">list</span>(data))</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>[&lt;tf.Tensor: shape=(<span class="number">10</span>,), dtype=int32, numpy=array([<span class="number">84</span>, <span class="number">89</span>, <span class="number">91</span>, <span class="number">79</span>, <span class="number">90</span>,  <span class="number">3</span>, <span class="number">99</span>, <span class="number">66</span>, <span class="number">78</span>,  <span class="number">7</span>], dtype=int32)&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&lt;tf.Tensor: shape=(<span class="number">10</span>,), dtype=int32, numpy=array([<span class="number">64</span>, <span class="number">15</span>, <span class="number">65</span>, <span class="number">28</span>, <span class="number">97</span>, <span class="number">41</span>,  <span class="number">2</span>, <span class="number">62</span>, <span class="number">10</span>, <span class="number">52</span>], dtype=int32)&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&lt;tf.Tensor: shape=(<span class="number">10</span>,), dtype=int32, numpy=array([<span class="number">76</span>, <span class="number">92</span>, <span class="number">40</span>, <span class="number">43</span>, <span class="number">31</span>, <span class="number">21</span>, <span class="number">73</span>, <span class="number">88</span>, <span class="number">38</span>, <span class="number">20</span>], dtype=int32)&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>...</span><br></pre></td></tr></table></figure>
+
+<p>再使用先批处理后打乱的方式：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">data = ds.batch(<span class="number">10</span>).shuffle(buffer_size=<span class="number">10</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">list</span>(data))</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>[&lt;tf.Tensor: shape=(<span class="number">10</span>,), dtype=int32, numpy=array([<span class="number">90</span>, <span class="number">91</span>, <span class="number">92</span>, <span class="number">93</span>, <span class="number">94</span>, <span class="number">95</span>, <span class="number">96</span>, <span class="number">97</span>, <span class="number">98</span>, <span class="number">99</span>], dtype=int32)&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&lt;tf.Tensor: shape=(<span class="number">10</span>,), dtype=int32, numpy=array([<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>], dtype=int32)&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&lt;tf.Tensor: shape=(<span class="number">10</span>,), dtype=int32, numpy=array([<span class="number">50</span>, <span class="number">51</span>, <span class="number">52</span>, <span class="number">53</span>, <span class="number">54</span>, <span class="number">55</span>, <span class="number">56</span>, <span class="number">57</span>, <span class="number">58</span>, <span class="number">59</span>], dtype=int32)&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>...</span><br></pre></td></tr></table></figure>
+
+<p>解释：答案就是一种很自然的方式，你用什么样的顺序调用，数据流就按什么顺序处理。</p>
+<h3 id="3、map"><a href="#3、map" class="headerlink" title="3、map"></a>3、map</h3><p>map 是将数据集从一种格式转换为另一种格式的语法。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ds = tf.data.Dataset.from_tensor_slices(tf.<span class="built_in">range</span>(<span class="number">5</span>))</span><br><span class="line">data = ds.<span class="built_in">map</span>(<span class="keyword">lambda</span> x: x*<span class="number">2</span>)</span><br><span class="line"><span class="built_in">list</span>(data)</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>[&lt;tf.Tensor: shape=(), dtype=int32, numpy=<span class="number">0</span>&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&lt;tf.Tensor: shape=(), dtype=int32, numpy=<span class="number">2</span>&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&lt;tf.Tensor: shape=(), dtype=int32, numpy=<span class="number">4</span>&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&lt;tf.Tensor: shape=(), dtype=int32, numpy=<span class="number">6</span>&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&lt;tf.Tensor: shape=(), dtype=int32, numpy=<span class="number">8</span>&gt;]</span><br></pre></td></tr></table></figure>
+
+<p>map 时支持并行，所以一定不要忘了加 <code>num_parallel_calls</code> 参数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ds.<span class="built_in">map</span>(num_parallel_calls=<span class="number">8</span>)</span><br></pre></td></tr></table></figure>
+
+<p>或者让 TensorFlow 帮你决定：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ds.<span class="built_in">map</span>(num_parallel_calls=tf.data.AUTOTUNE)</span><br></pre></td></tr></table></figure>
+
+<h3 id="4、prefetch"><a href="#4、prefetch" class="headerlink" title="4、prefetch"></a>4、prefetch</h3><p>prefetch 是预取的意思。顾名思义，prefetch 始终让数据读取流程领先数据处理流程一个单位。当使用 prefetch 时，记得将 prefetch 调用放在最后：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ds.<span class="built_in">map</span>(...).shuffle(<span class="number">64</span>).batch(<span class="number">64</span>).prefetch(<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<p>（Note：主要这里的 <code>buffer_size</code> 和 <code>batch_size</code> 都设置为 64 了，如何评估这时的随机程度呢？这里甚至可以发明一种数学）</p>
+<h3 id="5、cache"><a href="#5、cache" class="headerlink" title="5、cache"></a>5、cache</h3><p>cache 是一种不太常用的流程，它是将前面的处理结果在内存下缓存下来，不用消耗资源重复计算了。试想一下 tf.data 处理的数据集通常内存下无法全部存下，这样缓存的结果也无法存下来。</p>
+<p>凡事有例外，我设想了以下的场景，适用于 cache：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">urls = [...]</span><br><span class="line">ds = tf.data.Dataset.from_tensor_slices(urls)</span><br><span class="line">ds = ds.<span class="built_in">map</span>(download_file_from_url).cache().<span class="built_in">map</span>(read_file_from_disk)...</span><br></pre></td></tr></table></figure>
+
+<p>这里的场景是，先要通过网络下载文件到本地磁盘，返回本地磁盘的路径，后续再从本地磁盘读取数据。由于网络访问非常消耗资源，因此缓存下来后续直接提供。</p>
+<h3 id="6、interleave"><a href="#6、interleave" class="headerlink" title="6、interleave"></a>6、interleave</h3><p>interleave 是交错的意思，意味着交错地提取数据。交错不是为了打乱，它通常是为了并行。</p>
+<p>设想一下我们有 50 个文件，每个文件的每行是一个文档。然后我们要每 5 个文件交错地读取。所谓交错，指的是我们同时读取第 1 到 第 5 个文件，第一次读取这 5 个文件的第一行、第二次读取这 5 个文件的第二行、……</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">filenames = [...]</span><br><span class="line">ds = tf.data.Dataset.from_tensor_slices(filenames)</span><br><span class="line">ds.interleave(</span><br><span class="line">    <span class="keyword">lambda</span> f: tf.data.TextLineDataset(f),</span><br><span class="line">    cycle_length=<span class="number">5</span>,</span><br><span class="line">    num_parallel_calls=<span class="number">5</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>第一个参数 <code>map_func</code> 接受一个 tf.data.Dataset，返回一个 tf.data.Dataset；<code>cycle_length</code> 指定交错数；<code>num_parallel_calls</code> 指定并行数。</p>
+<p>个人意见，当使用交错时，不设置并行数是没有意义的。</p>
+<h3 id="7、unbatch"><a href="#7、unbatch" class="headerlink" title="7、unbatch"></a>7、unbatch</h3><p>这小节将 batch 的理念统一梳理清楚。</p>
+<p>tf.data 在处理数据时，总会将数据的第一维视为 batch，这与你是否调用了 batch 方法无关的。当调用 batch 时，实际上是将数据升维；当调用 unbatch 方法时，是将数据降维。</p>
+<p>这次我们将 shape 为 (5,4,3) 的数据直接构建为数据集：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">tensor = tf.<span class="built_in">range</span>(<span class="number">4</span>*<span class="number">3</span>*<span class="number">2</span>)</span><br><span class="line">tensor2 =tf.reshape(tensor, [<span class="number">4</span>, <span class="number">3</span>, <span class="number">2</span>])</span><br><span class="line">ds = tf.data.Dataset.from_tensor_slices(tensor2)</span><br></pre></td></tr></table></figure>
+
+<p>此时第一个维度 4 是 batch_size，内部数据的维度为 (3,2)：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> elem <span class="keyword">in</span> ds.take(<span class="number">1</span>):</span><br><span class="line">    <span class="built_in">print</span>(elem)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>[[<span class="number">0</span> <span class="number">1</span>]</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>[<span class="number">2</span> <span class="number">3</span>]</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>[<span class="number">4</span> <span class="number">5</span>]], shape=(<span class="number">3</span>, <span class="number">2</span>), dtype=int32)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">len</span>(<span class="built_in">list</span>(ds)))</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">12</span></span><br></pre></td></tr></table></figure>
+
+<p>调用 unbatch 之后，将数据维度从 (3,2) 退化为 (2,)，数据数量从 4 上升为 12：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ds = ds.unbatch()</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> elem <span class="keyword">in</span> ds.take(<span class="number">1</span>):</span><br><span class="line">    <span class="built_in">print</span>(elem)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor([<span class="number">0</span> <span class="number">1</span>], shape=(<span class="number">2</span>,), dtype=int32)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">len</span>(<span class="built_in">list</span>(ds)))</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">12</span></span><br></pre></td></tr></table></figure>
+
+<p>这时候可以重新 batch(4)，数据维度从 (2,) 上升为 (4,2)，数据数量从 12 合并为 3：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">ds = ds.batch(<span class="number">4</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> elem <span class="keyword">in</span> ds.take(<span class="number">1</span>):</span><br><span class="line">    <span class="built_in">print</span>(elem)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>[[<span class="number">0</span> <span class="number">1</span>]</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>[<span class="number">2</span> <span class="number">3</span>]</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>[<span class="number">4</span> <span class="number">5</span>]</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>[<span class="number">6</span> <span class="number">7</span>]], shape=(<span class="number">4</span>, <span class="number">2</span>), dtype=int32)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="built_in">len</span>(<span class="built_in">list</span>(ds)))</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">3</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="8、rebatch"><a href="#8、rebatch" class="headerlink" title="8、rebatch"></a>8、rebatch</h3><p>所谓 rebatch，是 unbatch 和 batch 的简写，下面两行代码等价：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ds.unbatch().batch(<span class="number">4</span>)</span><br><span class="line">ds.rebatch(<span class="number">4</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="9、repeat"><a href="#9、repeat" class="headerlink" title="9、repeat"></a>9、repeat</h3><p>数据集从头到尾遍历一次称作一轮，repeat 可以将这个轮次继续重复下去。<code>.repeat(3)</code> 一共遍历 3 轮，<code>.repeat()</code> 可以无限遍历下去。</p>
+<p>shuffle 和 repeat 如果不同顺序结果会不同。repeat 是针对前面数据集的重复迭代，理解这一点就能理解先 shuffle 和 repeat 的顺序不同的结果了。</p>
+<p>我们先构造一个轻量的数据集：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">range</span> = tf.<span class="built_in">range</span>(<span class="number">4</span>)</span><br><span class="line">ds = tf.data.Dataset.from_tensor_slices(<span class="built_in">range</span>)</span><br></pre></td></tr></table></figure>
+
+<p>先 shuffle 后 repeat，不同迭代轮次的数据不会串，因此每轮数据都会是 0、1、2、3，只是每一轮的数据会有所不同。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">ds = ds.shuffle(buffer_size=<span class="number">4</span>).repeat(<span class="number">3</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> ds:</span><br><span class="line">    <span class="built_in">print</span>(i)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">1</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">3</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">2</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">0</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">3</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">1</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">2</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">0</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">0</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">2</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">3</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">1</span>, shape=(), dtype=int32)</span><br></pre></td></tr></table></figure>
+
+<p>先 repeat 后 shuffle，就是先将数据 0、1、2、3 重复 3 遍得到 12 个数，然后将这 12 数整体打乱。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">ds = ds.repeat(<span class="number">3</span>).shuffle(buffer_size=<span class="number">12</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> ds:</span><br><span class="line">    <span class="built_in">print</span>(i)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">3</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">2</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">1</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">2</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">2</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">0</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">3</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">0</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">1</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">1</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">3</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">0</span>, shape=(), dtype=int32)</span><br></pre></td></tr></table></figure>
+
+<p>先 shuffle 后 repeat，中间可以加个 cache，这样每轮迭代的随机打乱效果一致了：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">ds = ds.shuffle(buffer_size=<span class="number">4</span>).cache().repeat(<span class="number">3</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> ds:</span><br><span class="line">    <span class="built_in">print</span>(i)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">1</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">3</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">2</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">0</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">1</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">3</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">2</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">0</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">1</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">3</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">2</span>, shape=(), dtype=int32)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>tf.Tensor(<span class="number">0</span>, shape=(), dtype=int32)</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、直接将-tensors-构建为数据集"><a href="#三、直接将-tensors-构建为数据集" class="headerlink" title="三、直接将 tensors 构建为数据集"></a>三、直接将 tensors 构建为数据集</h2><h3 id="1、再看-from-tensor-slices-方法"><a href="#1、再看-from-tensor-slices-方法" class="headerlink" title="1、再看 from_tensor_slices 方法"></a>1、再看 <code>from_tensor_slices</code> 方法</h3><p>我们已经见过 <code>tf.data.Dataset.from_tensor_slices</code> 方法可以接受 tensors，它将 tensors 的第一维视为 batch_size，剩下的是数据维度。因此，理论上它是不能够接受 <code>shape=()</code> 的数据的：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a = tf.constant(<span class="number">5</span>)</span><br><span class="line">tf.data.Dataset.from_tensor_slices(a)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>ValueError: Unbatching a tensor <span class="keyword">is</span> only supported <span class="keyword">for</span> rank &gt;= <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>这很合理，接受。</p>
+<p>实际上，<code>tf.data.Dataset.from_tensor_slices</code> 还可以接受元组、字典甚至是元组内嵌字典、字典内嵌元组等格式。唯一且必须的要求是，数据的第一个维度即批次应当是相等的。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">a = tf.reshape(tf.<span class="built_in">range</span>(<span class="number">9</span>), (<span class="number">3</span>, <span class="number">3</span>))</span><br><span class="line">b = tf.reshape(tf.<span class="built_in">range</span>(<span class="number">6</span>), (<span class="number">3</span>, <span class="number">2</span>))</span><br><span class="line">c = tf.reshape(tf.<span class="built_in">range</span>(<span class="number">3</span>), (<span class="number">3</span>,))</span><br><span class="line">ds = tf.data.Dataset.from_tensor_slices((&#123;<span class="string">&quot;a&quot;</span>: a, <span class="string">&quot;b&quot;</span>: b&#125;, c))</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> elem <span class="keyword">in</span> ds.take(<span class="number">1</span>):</span><br><span class="line">    <span class="built_in">print</span>(elem)</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>(&#123;<span class="string">&#x27;a&#x27;</span>: &lt;tf.Tensor: shape=(<span class="number">3</span>,), dtype=int32, numpy=array([<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>], dtype=int32)&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>  <span class="string">&#x27;b&#x27;</span>: &lt;tf.Tensor: shape=(<span class="number">2</span>,), dtype=int32, numpy=array([<span class="number">0</span>, <span class="number">1</span>], dtype=int32)&gt;&#125;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span> &lt;tf.Tensor: shape=(), dtype=int32, numpy=<span class="number">0</span>&gt;)</span><br></pre></td></tr></table></figure>
+
+<p>另外，数组和 numpy 也接受，tf.data 会将这两者首先转换为 Tensor 类型，再后续处理。因此，下面三者是等价的：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">tf.data.Dataset.from_tensor_slices([<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>])</span><br><span class="line">tf.data.Dataset.from_tensor_slices(np.array([<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>]))</span><br><span class="line">tf.data.Dataset.from_tensor_slices(tf.constant([<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>]))</span><br></pre></td></tr></table></figure>
+
+<p>结果都是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;&gt;&gt; </span>[&lt;tf.Tensor: shape=(), dtype=int32, numpy=<span class="number">1</span>&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span> &lt;tf.Tensor: shape=(), dtype=int32, numpy=<span class="number">2</span>&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span> &lt;tf.Tensor: shape=(), dtype=int32, numpy=<span class="number">3</span>&gt;,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span> &lt;tf.Tensor: shape=(), dtype=int32, numpy=<span class="number">4</span>&gt;]</span><br></pre></td></tr></table></figure>
+
+<h3 id="2、看一下-from-tensors-方法"><a href="#2、看一下-from-tensors-方法" class="headerlink" title="2、看一下 from_tensors 方法"></a>2、看一下 <code>from_tensors</code> 方法</h3><p>为了避免混淆，介绍一下 <code>tf.data.Dataset</code> 的另一个方法 <code>from_tensors</code>。它接受与 <code>from_tensor_slices</code> 方法同样的结构，包括 tensors、元组、字典、数组和 numpy. 它们的区别是针对 batch_size 的处理，<code>from_tensor_slices</code> 将参数第一个维度视为 batch 的维度，而 <code>from_tensors</code> 方法参数整体视为单个数据，并自动赋予批次的数量为 1.</p>
+<p>因此，下面的调用不会报错：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">a = tf.constant(5)</span><br><span class="line">ds = tf.data.Dataset.from_tensors(a)</span><br><span class="line">list(ds)</span><br><span class="line"></span><br><span class="line">&gt;&gt;&gt; [&lt;tf.Tensor: shape=(), dtype=int32, numpy=5&gt;]</span><br></pre></td></tr></table></figure>
+
+<p><code>from_tensors</code> 我几乎看不到用法。</p>
+<p>四、总结</p>
+<p>本文只是简单地介绍了 TensorFlow 数据集的基本操作以及构造方法。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/TensorFlow/" rel="tag"># TensorFlow</a>
+              <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag"># 深度学习</a>
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86/" rel="tag"># 数据处理</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/03/01/keras-customize-components/" rel="prev" title="Keras 下的自定义组件">
+                  <i class="fa fa-chevron-left"></i> Keras 下的自定义组件
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yet Run</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"yetrun","repo":"yetrun.github.io","client_id":"a386f9dc0f5fe109f2d1","client_secret":"e2a830c7febee5b141b227032f95161f738be604","admin_user":"yetrun","distraction_free_mode":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","js":{"url":"https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.min.js","integrity":"sha256-Pmj85ojLaPOWwRtlMJwmezB/Qg8BzvJp5eTzvXaYAfA="},"path_md5":"f2330e07d9832c727ddb0a12117ff6af"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>
