@@ -116,12 +116,12 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-count">20</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-count">18</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
@@ -160,6 +160,79 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://yet.run/2026/03/14/tensorflow-dataset-closure-trap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yet Run">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yet Run 的小站">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/03/14/tensorflow-dataset-closure-trap/" class="post-title-link" itemprop="url">TensorFlow Dataset from_generator 的闭包陷阱</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-03-14 16:30:00 / 修改时间：17:11:11" itemprop="dateCreated datePublished" datetime="2026-03-14T16:30:00+08:00">2026-03-14</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>今天在处理一个文本解析任务时，遇到了一个让人头疼的问题。本来是一个简单的需求：读取目录下的多个文本文件，每个文件里包含若干个用 <code>&lt;doc&gt;</code> 标签包裹的文档，想要把它们解析成一个 <code>tf.data.Dataset</code>，每个元素是一个文档字符串。</p>
+<p>看起来很简单对吧？但就是这个”简单”的需求，让我陷入了 TensorFlow 图执行模式的深坑，也让我重新理解了 Python 闭包和 TensorFlow 的 SymbolicTensor。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/03/14/tensorflow-dataset-closure-trap/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="https://yet.run/2026/03/07/tensorflow-data/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -185,7 +258,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2026-03-07 14:20:03 / 修改时间：18:02:51" itemprop="dateCreated datePublished" datetime="2026-03-07T14:20:03+08:00">2026-03-07</time>
+      <time title="创建时间：2026-03-07 14:20:03 / 修改时间：18:11:30" itemprop="dateCreated datePublished" datetime="2026-03-07T14:20:03+08:00">2026-03-07</time>
     </span>
 
   
@@ -864,84 +937,6 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2023/04/04/meta-api-rails-plugin/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://yet.run/2022/10/31/react-vs-vue/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yet Run">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yet Run 的小站">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2022/10/31/react-vs-vue/" class="post-title-link" itemprop="url">React 与 Vue 3 比较（我为什么选择 React）</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2022-10-31 16:15:58" itemprop="dateCreated datePublished" datetime="2022-10-31T16:15:58+08:00">2022-10-31</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2023-08-13 14:58:19" itemprop="dateModified" datetime="2023-08-13T14:58:19+08:00">2023-08-13</time>
-      </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="Vue-的致命缺点"><a href="#Vue-的致命缺点" class="headerlink" title="Vue 的致命缺点"></a>Vue 的致命缺点</h2><p>虽然说 Vue 更新到第三版之后它的表达能力更强了，但相比于 React 还是有几个对我而言不可接受的缺点，现列举一二。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2022/10/31/react-vs-vue/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
