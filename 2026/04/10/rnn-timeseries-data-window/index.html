@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"yet.run","root":"/","images":"/images","scheme":"Pisces","version":"8.7.1","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<meta name="description" content="最近在看《Hands-On Machine Learning with Scikit-Learn, Keras &amp; TensorFlow》里关于 RNN 做时间序列预测的内容。我本来以为重点会落在 SimpleRNN 本身，结果实际做下来才发现，真正麻烦的地方往往不是模型，而是怎么把时间序列整理成监督学习的数据集。 这篇文章我就专门梳理这个问题：当我们要用过去 56 天的数据预测未来的地铁">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RNN 时间序列预测里，数据窗口到底该怎么做？">
+<meta property="og:url" content="https://yet.run/2026/04/10/rnn-timeseries-data-window/index.html">
+<meta property="og:site_name" content="Yet Run 的小站">
+<meta property="og:description" content="最近在看《Hands-On Machine Learning with Scikit-Learn, Keras &amp; TensorFlow》里关于 RNN 做时间序列预测的内容。我本来以为重点会落在 SimpleRNN 本身，结果实际做下来才发现，真正麻烦的地方往往不是模型，而是怎么把时间序列整理成监督学习的数据集。 这篇文章我就专门梳理这个问题：当我们要用过去 56 天的数据预测未来的地铁">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-04-10T12:30:00.000Z">
+<meta property="article:modified_time" content="2026-04-10T11:32:33.260Z">
+<meta property="article:author" content="Yet Run">
+<meta property="article:tag" content="Keras">
+<meta property="article:tag" content="TensorFlow">
+<meta property="article:tag" content="深度学习">
+<meta property="article:tag" content="RNN">
+<meta property="article:tag" content="时间序列">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://yet.run/2026/04/10/rnn-timeseries-data-window/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://yet.run/2026/04/10/rnn-timeseries-data-window/","path":"2026/04/10/rnn-timeseries-data-window/","title":"RNN 时间序列预测里，数据窗口到底该怎么做？"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>RNN 时间序列预测里，数据窗口到底该怎么做？ | Yet Run 的小站</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Yet Run 的小站</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E4%B8%A4%E4%B8%AA%E5%81%9A%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3%E7%9A%84%E5%B7%A5%E5%85%B7"><span class="nav-number">1.</span> <span class="nav-text">一、两个做滑动窗口的工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%85%88%E7%9C%8B%E6%95%B0%E6%8D%AE%E5%92%8C%E4%B8%80%E4%B8%AA%E6%9C%B4%E7%B4%A0%E5%9F%BA%E7%BA%BF"><span class="nav-number">2.</span> <span class="nav-text">二、先看数据和一个朴素基线</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%9B%9B%E7%A7%8D%E4%BB%BB%E5%8A%A1%EF%BC%8C%E6%95%B0%E6%8D%AE%E9%9B%86%E5%88%B0%E5%BA%95%E6%80%8E%E4%B9%88%E5%81%9A"><span class="nav-number">3.</span> <span class="nav-text">三、四种任务，数据集到底怎么做</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1%E3%80%81%E5%8D%95%E5%8F%98%E9%87%8F%E5%8D%95%E6%AD%A5%E9%A2%84%E6%B5%8B"><span class="nav-number">3.1.</span> <span class="nav-text">1、单变量单步预测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2%E3%80%81%E5%A4%9A%E5%8F%98%E9%87%8F%E5%8D%95%E6%AD%A5%E9%A2%84%E6%B5%8B"><span class="nav-number">3.2.</span> <span class="nav-text">2、多变量单步预测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3%E3%80%81%E5%A4%9A%E5%8F%98%E9%87%8F%E5%A4%9A%E6%AD%A5%E9%A2%84%E6%B5%8B"><span class="nav-number">3.3.</span> <span class="nav-text">3、多变量多步预测</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E4%B8%80%EF%BC%9A%E5%85%88%E5%81%9A%E7%9B%AE%E6%A0%87%E7%AA%97%E5%8F%A3%E6%95%B0%E7%BB%84"><span class="nav-number">3.3.1.</span> <span class="nav-text">方法一：先做目标窗口数组</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E4%BA%8C%EF%BC%9A%E5%85%88%E5%81%9A%E6%80%BB%E7%AA%97%E5%8F%A3%E5%86%8D%E6%8B%86%E5%88%86"><span class="nav-number">3.3.2.</span> <span class="nav-text">方法二：先做总窗口再拆分</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4%E3%80%81%E5%BA%8F%E5%88%97%E5%88%B0%E5%BA%8F%E5%88%97%E9%A2%84%E6%B5%8B"><span class="nav-number">3.4.</span> <span class="nav-text">4、序列到序列预测</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E4%B8%80%EF%BC%9A%E5%85%88%E5%81%9A%E6%80%BB%E7%AA%97%E5%8F%A3%EF%BC%8C%E5%86%8D%E5%9C%A8%E5%BC%A0%E9%87%8F%E9%87%8C-frame"><span class="nav-number">3.4.1.</span> <span class="nav-text">方法一：先做总窗口，再在张量里 frame</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E4%BA%8C%EF%BC%9A%E4%B8%A4%E6%AC%A1-to-window"><span class="nav-number">3.4.2.</span> <span class="nav-text">方法二：两次 to_window()</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%A8%A1%E5%9E%8B%E7%BB%93%E6%9E%84%E5%85%B6%E5%AE%9E%E6%94%B9%E5%BE%97%E4%B8%8D%E5%A4%A7"><span class="nav-number">4.</span> <span class="nav-text">四、模型结构其实改得不大</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1%E3%80%81%E5%8D%95%E5%8F%98%E9%87%8F%E5%8D%95%E6%AD%A5"><span class="nav-number">4.1.</span> <span class="nav-text">1、单变量单步</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2%E3%80%81%E5%A4%9A%E5%8F%98%E9%87%8F%E5%8D%95%E6%AD%A5"><span class="nav-number">4.2.</span> <span class="nav-text">2、多变量单步</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3%E3%80%81%E5%A4%9A%E5%8F%98%E9%87%8F%E5%A4%9A%E6%AD%A5"><span class="nav-number">4.3.</span> <span class="nav-text">3、多变量多步</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4%E3%80%81%E5%BA%8F%E5%88%97%E5%88%B0%E5%BA%8F%E5%88%97"><span class="nav-number">4.4.</span> <span class="nav-text">4、序列到序列</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E6%80%BB%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">五、总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-overview">
+            <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yet Run</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yet.run/2026/04/10/rnn-timeseries-data-window/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yet Run">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yet Run 的小站">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          RNN 时间序列预测里，数据窗口到底该怎么做？
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-04-10 20:30:00 / 修改时间：19:32:33" itemprop="dateCreated datePublished" datetime="2026-04-10T20:30:00+08:00">2026-04-10</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>最近在看《Hands-On Machine Learning with Scikit-Learn, Keras &amp; TensorFlow》里关于 RNN 做时间序列预测的内容。我本来以为重点会落在 <code>SimpleRNN</code> 本身，结果实际做下来才发现，真正麻烦的地方往往不是模型，而是<strong>怎么把时间序列整理成监督学习的数据集</strong>。</p>
+<p>这篇文章我就专门梳理这个问题：当我们要用过去 56 天的数据预测未来的地铁客流时，数据窗口到底应该怎么切？</p>
+<span id="more"></span>
+
+<h2 id="一、两个做滑动窗口的工具"><a href="#一、两个做滑动窗口的工具" class="headerlink" title="一、两个做滑动窗口的工具"></a>一、两个做滑动窗口的工具</h2><p>在这个问题里，我主要遇到两个工具：</p>
+<ul>
+<li><code>keras.utils.timeseries_dataset_from_array</code></li>
+<li><code>tf.data.Dataset.window</code></li>
+</ul>
+<p>它们都能做滑动窗口，但思路并不一样。</p>
+<p><code>timeseries_dataset_from_array()</code> 更像一个高层封装。你给它数组，它就帮你把数组切成一段段时间序列，再和目标值配起来。对于单步预测或者结构比较规则的任务，它非常顺手。</p>
+<p><code>window()</code> 则更底层一点。它不是直接吐出 Tensor，而是先吐出一个“数据集的集合”，也就是 nested dataset。所以后面通常还要接一个 <code>flat_map()</code>，把窗口重新拍平成普通的数据集。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"></span><br><span class="line">dataset = tf.data.Dataset.<span class="built_in">range</span>(<span class="number">6</span>).window(<span class="number">4</span>, shift=<span class="number">1</span>, drop_remainder=<span class="literal">True</span>)</span><br><span class="line">dataset = dataset.flat_map(<span class="keyword">lambda</span> window_ds: window_ds.batch(<span class="number">4</span>))</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> window_tensor <span class="keyword">in</span> dataset:</span><br><span class="line">    <span class="built_in">print</span>(window_tensor)</span><br></pre></td></tr></table></figure>
+
+<p>为了少写一点样板代码，我后面统一用了一个小工具函数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">to_window</span>(<span class="params">dataset, length</span>):</span></span><br><span class="line">    dataset = dataset.window(length, shift=<span class="number">1</span>, drop_remainder=<span class="literal">True</span>)</span><br><span class="line">    <span class="keyword">return</span> dataset.flat_map(<span class="keyword">lambda</span> window_ds: window_ds.batch(length))</span><br></pre></td></tr></table></figure>
+
+<p>这个函数很好用，但有一个坑要先记住：<code>to_window()</code> 处理的是数据集一条一条吐出来的样本，它并不理解 batch 的语义。也就是说，如果你的输入已经是批处理后的数据集，就不能把整个 batch 当成一个普通样本再去套 <code>to_window()</code>。</p>
+<p>另外还有一个边界要讲清楚：<code>keras.utils.timeseries_dataset_from_array()</code> 的输入和 <code>targets</code> 都应该是数组类对象，例如 NumPy array、tensor 或者 list；它**不接受 <code>tf.data.Dataset</code> 直接作为 <code>targets</code>**。这个限制会直接影响我们后面“多步预测”的写法。</p>
+<h2 id="二、先看数据和一个朴素基线"><a href="#二、先看数据和一个朴素基线" class="headerlink" title="二、先看数据和一个朴素基线"></a>二、先看数据和一个朴素基线</h2><p>这份数据集是芝加哥公共交通系统的日客流数据，字段并不复杂，大概就是：</p>
+<ul>
+<li>日期</li>
+<li>日期类型</li>
+<li>公交乘客量</li>
+<li>地铁乘客量</li>
+</ul>
+<p>如果把 2019 年春季那段数据画出来，会比较明显地看到 7 天左右的周期性。也正因为这样，一个非常自然的基线模型就是：<strong>直接拿 7 天前的值作为今天的预测</strong>。</p>
+<p>这个基线虽然简单，但很有意义。因为它提醒我一件事：时间序列建模别一上来就盯着网络深度，先看看序列本身有没有周期性，很多时候已经能解释一大半现象。</p>
+<h2 id="三、四种任务，数据集到底怎么做"><a href="#三、四种任务，数据集到底怎么做" class="headerlink" title="三、四种任务，数据集到底怎么做"></a>三、四种任务，数据集到底怎么做</h2><p>这篇文章里，重点不是比较哪种模型最终效果最好，而是梳理四种常见任务的数据形状：</p>
+<ul>
+<li>单变量单步预测：<code>(batch, 56, 1) -&gt; (batch,)</code></li>
+<li>多变量单步预测：<code>(batch, 56, 5) -&gt; (batch,)</code></li>
+<li>多变量多步预测：<code>(batch, 56, 5) -&gt; (batch, 14)</code></li>
+<li>序列到序列预测：<code>(batch, 56, 5) -&gt; (batch, 56, 14)</code></li>
+</ul>
+<p>下面我只写训练集的构造。验证集和测试集按同样的窗口规则处理即可，没必要重复贴一遍。</p>
+<h3 id="1、单变量单步预测"><a href="#1、单变量单步预测" class="headerlink" title="1、单变量单步预测"></a>1、单变量单步预测</h3><p>这是最直接的一种情形：输入是前 56 天的地铁乘客量，输出是第 57 天的地铁乘客量。</p>
+<p>训练数据集直接打印出来时，输入输出形状是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(batch, <span class="number">56</span>) -&gt; (batch,)</span><br></pre></td></tr></table></figure>
+
+<p>这也是 notebook 里实际检查出来的 shape。</p>
+<p>不过从 RNN 的语义上看，这仍然是一条单变量序列，也就是每个时间步只有 1 个特征，因此可以理解为：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(batch, <span class="number">56</span>, <span class="number">1</span>) -&gt; (batch, <span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<p>我一开始也以为这里会报 shape 不匹配，但实际复现后发现，在我这份 notebook 使用的 TensorFlow / Keras 版本里，二维输入 <code>(batch, 56)</code> 可以被单变量 <code>SimpleRNN</code> 正常接受。换句话说，它会按“每个时间步只有一个特征”的方式来处理这份数据。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">sequence_length = <span class="number">56</span></span><br><span class="line"></span><br><span class="line">rails_train_ds = keras.utils.timeseries_dataset_from_array(</span><br><span class="line">    rail_train.to_numpy(),</span><br><span class="line">    targets=rail_train[sequence_length:],</span><br><span class="line">    sequence_length=sequence_length,</span><br><span class="line">    batch_size=<span class="number">32</span>,</span><br><span class="line">    shuffle=<span class="literal">True</span>,</span><br><span class="line">    seed=<span class="number">42</span>,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这种写法理解起来也很直接：拿长度为 56 的窗口做输入，再拿紧接着的下一个标量做目标。只是写文章时最好把“数据集打印出来的 shape”和“RNN 理解它时的 shape”区分开，这样不容易绕晕。</p>
+<h3 id="2、多变量单步预测"><a href="#2、多变量单步预测" class="headerlink" title="2、多变量单步预测"></a>2、多变量单步预测</h3><p>这次输入序列里，每个时间步不再只有一个数，而是一个五维向量：</p>
+<ul>
+<li>公交乘客量</li>
+<li>地铁乘客量</li>
+<li>下一天日期类型的 one-hot 编码，共 3 维</li>
+</ul>
+<p>所以输入输出形状会变成：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(batch, <span class="number">56</span>, <span class="number">5</span>) -&gt; (batch,)</span><br></pre></td></tr></table></figure>
+
+<p>训练集构造仍然可以直接交给 <code>timeseries_dataset_from_array()</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mulvar_train_ds = keras.utils.timeseries_dataset_from_array(</span><br><span class="line">    mulvar_train.to_numpy(dtype=<span class="string">&quot;float32&quot;</span>),</span><br><span class="line">    targets=mulvar_train[<span class="string">&quot;rail&quot;</span>][sequence_length:],</span><br><span class="line">    sequence_length=sequence_length,</span><br><span class="line">    batch_size=<span class="number">32</span>,</span><br><span class="line">    shuffle=<span class="literal">True</span>,</span><br><span class="line">    seed=<span class="number">42</span>,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这种方法也不难理解：输入窗口里保留更多上下文特征，但目标仍然只是窗口之后的那个单点值。</p>
+<h3 id="3、多变量多步预测"><a href="#3、多变量多步预测" class="headerlink" title="3、多变量多步预测"></a>3、多变量多步预测</h3><p>这里开始变得有意思了。输入仍然是前 56 天、每个时间步 5 个特征，但目标不再是单个标量，而是<strong>未来 14 天的地铁乘客量</strong>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(batch, <span class="number">56</span>, <span class="number">5</span>) -&gt; (batch, <span class="number">14</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这部分在 notebook 里其实有两种构造思路，我觉得都值得写出来。</p>
+<h4 id="方法一：先做目标窗口数组"><a href="#方法一：先做目标窗口数组" class="headerlink" title="方法一：先做目标窗口数组"></a>方法一：先做目标窗口数组</h4><p>第一种思路是先把目标单独整理好。因为 <code>timeseries_dataset_from_array()</code> 的 <code>targets</code> 参数只接受数组类对象，所以这里不能直接把 <code>Dataset</code> 扔进去，而是要先把目标窗口做成数组。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">mulvar_train_rail = mulvar_train[<span class="string">&quot;rail&quot;</span>][sequence_length:]</span><br><span class="line"></span><br><span class="line">mulvar_rail_target = tf.data.Dataset.from_tensor_slices(</span><br><span class="line">    mulvar_train_rail.to_numpy()</span><br><span class="line">)</span><br><span class="line">mulvar_rail_target = to_window(mulvar_rail_target, <span class="number">14</span>)</span><br><span class="line">mulvar_rail_target = <span class="built_in">list</span>(mulvar_rail_target.as_numpy_iterator())</span><br><span class="line"></span><br><span class="line">ahead_train_ds = keras.utils.timeseries_dataset_from_array(</span><br><span class="line">    mulvar_train.to_numpy(dtype=<span class="string">&quot;float32&quot;</span>),</span><br><span class="line">    targets=mulvar_rail_target,</span><br><span class="line">    sequence_length=sequence_length,</span><br><span class="line">    batch_size=<span class="number">32</span>,</span><br><span class="line">    shuffle=<span class="literal">True</span>,</span><br><span class="line">    seed=<span class="number">42</span>,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这种方法可以这样理解：输入窗口照旧切，目标则提前单独做成“未来 14 天”的窗口数组，再把这组数组塞给 <code>targets</code>。</p>
+<p>它的好处是直观，坏处是你会明显感觉到，输入窗口和目标窗口是分两步手工对齐出来的。</p>
+<h4 id="方法二：先做总窗口再拆分"><a href="#方法二：先做总窗口再拆分" class="headerlink" title="方法二：先做总窗口再拆分"></a>方法二：先做总窗口再拆分</h4><p>第二种思路是把输入和目标先拼成一个更长的大窗口，然后再拆开。我后来会更偏向这种写法，因为输入输出的对应关系更清楚。</p>
+<p>这里的大窗口长度是 <code>56 + 14</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">split_to_input_target</span>(<span class="params">window_batch</span>):</span></span><br><span class="line">    inputs = window_batch[:, :-<span class="number">14</span>]</span><br><span class="line">    targets = window_batch[:, -<span class="number">14</span>:, <span class="number">1</span>]  <span class="comment"># 第 1 列是 rail</span></span><br><span class="line">    <span class="keyword">return</span> inputs, targets</span><br><span class="line"></span><br><span class="line">ahead_train_ds = keras.utils.timeseries_dataset_from_array(</span><br><span class="line">    mulvar_train.to_numpy(dtype=<span class="string">&quot;float32&quot;</span>),</span><br><span class="line">    targets=<span class="literal">None</span>,</span><br><span class="line">    sequence_length=sequence_length + <span class="number">14</span>,</span><br><span class="line">    batch_size=<span class="number">32</span>,</span><br><span class="line">    shuffle=<span class="literal">True</span>,</span><br><span class="line">    seed=<span class="number">42</span>,</span><br><span class="line">).<span class="built_in">map</span>(split_to_input_target)</span><br></pre></td></tr></table></figure>
+
+<p>这种方法可以理解为：先切出一个完整样本，再在 batch 里把“前 56 步输入”和“后 14 步目标”拆开。</p>
+<p>如果只是做普通的多步预测，我会更偏向这一种。因为当输入和目标都来自同一个总窗口时，对齐关系不太容易出错。</p>
+<h3 id="4、序列到序列预测"><a href="#4、序列到序列预测" class="headerlink" title="4、序列到序列预测"></a>4、序列到序列预测</h3><p>这是最绕的一部分。这里的目标不再是“对整个输入序列只预测一次未来 14 天”，而是<strong>对输入序列中的每一个时间步，都预测从该时间步往后的 14 天</strong>。</p>
+<p>所以目标形状不再是 <code>(batch, 14)</code>，而是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(batch, <span class="number">56</span>, <span class="number">14</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这意味着输入序列的每个位置，都要对应一个 14 步的未来窗口。</p>
+<h4 id="方法一：先做总窗口，再在张量里-frame"><a href="#方法一：先做总窗口，再在张量里-frame" class="headerlink" title="方法一：先做总窗口，再在张量里 frame"></a>方法一：先做总窗口，再在张量里 frame</h4><p>第一种办法是：先像前面一样做一个 <code>56 + 14</code> 的总窗口，然后在拆分函数里用 <code>tf.signal.frame()</code> 生成每个时间步对应的未来窗口。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">split_to_input_target_seq2seq</span>(<span class="params">window_batch, ahead=<span class="number">14</span>, sequence_length=<span class="number">56</span>, target_col=<span class="number">1</span></span>):</span></span><br><span class="line">    inputs = window_batch[:, :sequence_length]</span><br><span class="line">    targets = window_batch[:, <span class="number">1</span>:, target_col]</span><br><span class="line"></span><br><span class="line">    target_sequences = tf.map_fn(</span><br><span class="line">        <span class="keyword">lambda</span> x: tf.signal.frame(x, frame_length=ahead, frame_step=<span class="number">1</span>),</span><br><span class="line">        targets</span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">return</span> inputs, target_sequences</span><br><span class="line"></span><br><span class="line">seq2seq_train_ds = keras.utils.timeseries_dataset_from_array(</span><br><span class="line">    mulvar_train.to_numpy(dtype=<span class="string">&quot;float32&quot;</span>),</span><br><span class="line">    targets=<span class="literal">None</span>,</span><br><span class="line">    sequence_length=sequence_length + <span class="number">14</span>,</span><br><span class="line">    batch_size=<span class="number">32</span>,</span><br><span class="line">    shuffle=<span class="literal">True</span>,</span><br><span class="line">    seed=<span class="number">42</span>,</span><br><span class="line">).<span class="built_in">map</span>(split_to_input_target_seq2seq)</span><br></pre></td></tr></table></figure>
+
+<p>这种方法可以理解为：先把一整段样本切出来，再在 Tensor 里面继续滑一次窗口，把目标加工成 <code>(56, 14)</code>。</p>
+<p>它的优点是逻辑集中在一个拆分函数里，缺点是你得先在脑子里想清楚 <code>frame()</code> 之后维度会怎么变化。</p>
+<h4 id="方法二：两次-to-window"><a href="#方法二：两次-to-window" class="headerlink" title="方法二：两次 to_window()"></a>方法二：两次 <code>to_window()</code></h4><p>第二种办法更像是在数据流里一层层加工。第一次 <code>to_window()</code> 先把每一个时间步扩成“当前输入 + 未来 14 步目标”；第二次 <code>to_window()</code> 再把 56 个时间步拼成一个完整样本。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">split_to_input_target_seq2seq</span>(<span class="params">sample</span>):</span></span><br><span class="line">    inputs = sample[:, <span class="number">0</span>]</span><br><span class="line">    targets = sample[:, <span class="number">1</span>:, <span class="number">1</span>]  <span class="comment"># 第 1 列是 rail</span></span><br><span class="line">    <span class="keyword">return</span> inputs, targets</span><br><span class="line"></span><br><span class="line">mulvar_train_ds = tf.data.Dataset.from_tensor_slices(</span><br><span class="line">    mulvar_train.to_numpy(dtype=<span class="string">&quot;float32&quot;</span>)</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">seq2seq_train_ds = to_window(to_window(mulvar_train_ds, length=<span class="number">15</span>), length=<span class="number">56</span>)</span><br><span class="line">seq2seq_train_ds = seq2seq_train_ds.<span class="built_in">map</span>(split_to_input_target_seq2seq).batch(<span class="number">32</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这种方法可以理解为：先构造“单步监督单元”，再把 56 个单步监督单元组装成一个样本。</p>
+<p>这套写法我觉得很漂亮，因为完全是在数据集这一层连续变换；但它也更绕，尤其是一旦没有完全搞清楚 <code>to_window()</code> 是按“逐元素样本”而不是按 batch 工作的，就很容易把自己绕进去。</p>
+<p>如果做一个很粗的比较：</p>
+<ul>
+<li><code>tf.signal.frame()</code> 的版本更像在张量上做后处理</li>
+<li>双 <code>to_window()</code> 的版本更像在数据流层面做连续加工</li>
+</ul>
+<h2 id="四、模型结构其实改得不大"><a href="#四、模型结构其实改得不大" class="headerlink" title="四、模型结构其实改得不大"></a>四、模型结构其实改得不大</h2><p>把数据集这一层想清楚之后，模型本身反而没那么复杂。</p>
+<h3 id="1、单变量单步"><a href="#1、单变量单步" class="headerlink" title="1、单变量单步"></a>1、单变量单步</h3><p>输入输出形状是 <code>(batch, 56, 1) -&gt; (batch, 1)</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">model = keras.Sequential([</span><br><span class="line">    keras.Input(shape=(<span class="literal">None</span>, <span class="number">1</span>)),</span><br><span class="line">    keras.layers.SimpleRNN(<span class="number">32</span>),</span><br><span class="line">    keras.layers.Dense(<span class="number">1</span>)</span><br><span class="line">])</span><br></pre></td></tr></table></figure>
+
+<h3 id="2、多变量单步"><a href="#2、多变量单步" class="headerlink" title="2、多变量单步"></a>2、多变量单步</h3><p>输入输出形状是 <code>(batch, 56, 5) -&gt; (batch, 1)</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">model = keras.Sequential([</span><br><span class="line">    keras.Input(shape=(<span class="literal">None</span>, <span class="number">5</span>)),</span><br><span class="line">    keras.layers.SimpleRNN(<span class="number">32</span>),</span><br><span class="line">    keras.layers.Dense(<span class="number">1</span>)</span><br><span class="line">])</span><br></pre></td></tr></table></figure>
+
+<h3 id="3、多变量多步"><a href="#3、多变量多步" class="headerlink" title="3、多变量多步"></a>3、多变量多步</h3><p>输入输出形状是 <code>(batch, 56, 5) -&gt; (batch, 14)</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">model = keras.Sequential([</span><br><span class="line">    keras.Input(shape=(<span class="literal">None</span>, <span class="number">5</span>)),</span><br><span class="line">    keras.layers.SimpleRNN(<span class="number">32</span>),</span><br><span class="line">    keras.layers.Dense(<span class="number">14</span>)</span><br><span class="line">])</span><br></pre></td></tr></table></figure>
+
+<p>这里其实只是把最后一层 <code>Dense</code> 的输出维度从 1 改成了 14。也就是说，模型最后一次输出，不再是一个标量，而是一整个未来两周的向量。</p>
+<h3 id="4、序列到序列"><a href="#4、序列到序列" class="headerlink" title="4、序列到序列"></a>4、序列到序列</h3><p>输入输出形状是 <code>(batch, 56, 5) -&gt; (batch, 56, 14)</code>：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">model = keras.Sequential([</span><br><span class="line">    keras.Input(shape=(<span class="number">56</span>, <span class="number">5</span>)),</span><br><span class="line">    keras.layers.SimpleRNN(<span class="number">32</span>, return_sequences=<span class="literal">True</span>),</span><br><span class="line">    keras.layers.Dense(<span class="number">14</span>)</span><br><span class="line">])</span><br></pre></td></tr></table></figure>
+
+<p>这里真正关键的是 <code>return_sequences=True</code>。因为我们不再只需要最后一个时间步的输出，而是需要 56 个时间步全部保留下来，再让后面的 <code>Dense(14)</code> 对每个时间步各自产生一个 14 维预测向量。</p>
+<p>所以这四种模型看下来，变化其实没有想象中那么大。真正复杂的部分，并不是 <code>SimpleRNN</code> 要怎么堆，而是<strong>目标张量到底长什么样，以及数据窗口要怎么和它对齐</strong>。</p>
+<h2 id="五、总结"><a href="#五、总结" class="headerlink" title="五、总结"></a>五、总结</h2><p>回头看这组实验，我觉得最值得记住的不是“哪种模型更强”，而是下面这句话：</p>
+<blockquote>
+<p>先想清楚目标张量长什么样，再决定窗口应该怎么切。</p>
+</blockquote>
+<p>如果目标是标量，那通常直接用 <code>timeseries_dataset_from_array()</code> 就够了；如果目标开始变成 14 步向量，或者甚至变成 <code>(56, 14)</code> 这样的序列集合，那么你就要认真想一想，到底是：</p>
+<ul>
+<li>先把目标单独做成窗口数组；</li>
+<li>还是先把输入和目标拼成一个总窗口，再统一拆分；</li>
+<li>还是干脆在 <code>tf.data</code> 这一层连续做两次窗口变换。</li>
+</ul>
+<p>从这个角度看，<code>SimpleRNN</code> 在这里更像一个教学模型。它真正帮我理解的，不只是循环网络本身，而是时间序列问题到底怎样才能被组织成标准的监督学习数据。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Keras/" rel="tag"># Keras</a>
+              <a href="/tags/TensorFlow/" rel="tag"># TensorFlow</a>
+              <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag"># 深度学习</a>
+              <a href="/tags/RNN/" rel="tag"># RNN</a>
+              <a href="/tags/%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97/" rel="tag"># 时间序列</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/03/21/rnn-softmax-from-logits-trap/" rel="prev" title="RNN 生成重复的坑：softmax 与 from_logits 的陷阱">
+                  <i class="fa fa-chevron-left"></i> RNN 生成重复的坑：softmax 与 from_logits 的陷阱
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yet Run</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"yetrun","repo":"yetrun.github.io","client_id":"a386f9dc0f5fe109f2d1","client_secret":"e2a830c7febee5b141b227032f95161f738be604","admin_user":"yetrun","distraction_free_mode":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","js":{"url":"https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.min.js","integrity":"sha256-Pmj85ojLaPOWwRtlMJwmezB/Qg8BzvJp5eTzvXaYAfA="},"path_md5":"92d220e2f716bfdb3406cb5fc8d91c5f"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>

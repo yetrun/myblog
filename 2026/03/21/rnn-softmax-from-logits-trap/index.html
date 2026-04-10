@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"yet.run","root":"/","images":"/images","scheme":"Pisces","version":"8.7.1","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<meta name="description" content="在做 RNN 模型生成任务时，我遇到了一个诡异的问题：模型总是生成重复的字符或词汇。排查了很久才发现，原来是** softmax 被调用了两次**。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RNN 生成重复的坑：softmax 与 from_logits 的陷阱">
+<meta property="og:url" content="https://yet.run/2026/03/21/rnn-softmax-from-logits-trap/index.html">
+<meta property="og:site_name" content="Yet Run 的小站">
+<meta property="og:description" content="在做 RNN 模型生成任务时，我遇到了一个诡异的问题：模型总是生成重复的字符或词汇。排查了很久才发现，原来是** softmax 被调用了两次**。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-21T12:00:00.000Z">
+<meta property="article:modified_time" content="2026-03-21T08:48:30.682Z">
+<meta property="article:author" content="Yet Run">
+<meta property="article:tag" content="Keras">
+<meta property="article:tag" content="TensorFlow">
+<meta property="article:tag" content="深度学习">
+<meta property="article:tag" content="RNN">
+<meta property="article:tag" content="调试">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://yet.run/2026/03/21/rnn-softmax-from-logits-trap/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://yet.run/2026/03/21/rnn-softmax-from-logits-trap/","path":"2026/03/21/rnn-softmax-from-logits-trap/","title":"RNN 生成重复的坑：softmax 与 from_logits 的陷阱"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>RNN 生成重复的坑：softmax 与 from_logits 的陷阱 | Yet Run 的小站</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Yet Run 的小站</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E7%8E%B0%E8%B1%A1"><span class="nav-number">1.</span> <span class="nav-text">问题现象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%A0%B9%E6%BA%90"><span class="nav-number">2.</span> <span class="nav-text">问题根源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">数学分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%94%99%E8%AF%AF%E6%8E%A8%E5%AF%BC%E7%9A%84%E4%BF%AE%E6%AD%A3"><span class="nav-number">3.1.</span> <span class="nav-text">错误推导的修正</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9C%9F%E6%AD%A3%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%9A%E8%AE%AD%E7%BB%83%E8%BF%87%E7%A8%8B%E7%9A%84%E7%B4%AF%E7%A7%AF%E6%95%88%E5%BA%94"><span class="nav-number">3.2.</span> <span class="nav-text">真正的问题：训练过程的累积效应</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%94%A8-from-logits%EF%BC%9F"><span class="nav-number">4.</span> <span class="nav-text">为什么要用 from_logits？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-overview">
+            <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Yet Run</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://yet.run/2026/03/21/rnn-softmax-from-logits-trap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yet Run">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yet Run 的小站">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          RNN 生成重复的坑：softmax 与 from_logits 的陷阱
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-03-21 20:00:00 / 修改时间：16:48:30" itemprop="dateCreated datePublished" datetime="2026-03-21T20:00:00+08:00">2026-03-21</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>在做 RNN 模型生成任务时，我遇到了一个诡异的问题：模型总是生成重复的字符或词汇。排查了很久才发现，原来是** softmax 被调用了两次**。</p>
+<span id="more"></span>
+
+<h2 id="问题现象"><a href="#问题现象" class="headerlink" title="问题现象"></a>问题现象</h2><p>在训练一个文本生成模型时，我发现模型生成结果总是重复的，比如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">输入：今天天气</span><br><span class="line">输出：今天天气好好好好好好好好......</span><br></pre></td></tr></table></figure>
+
+<p>检查模型输出，发现概率分布非常极端，某些 token 的概率接近 1，其他几乎为 0。这导致采样时总是选中同一个词。</p>
+<h2 id="问题根源"><a href="#问题根源" class="headerlink" title="问题根源"></a>问题根源</h2><p>翻看代码，发现问题出在这两个地方：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 模型输出层</span></span><br><span class="line">inputs = keras.Input(shape=(<span class="literal">None</span>,), dtype=<span class="string">&quot;int32&quot;</span>)</span><br><span class="line">x = layers.Embedding(input_dim=vocab_size, output_dim=embedding_dim)(inputs)</span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(num_layers):</span><br><span class="line">    x = layers.GRU(hidden_dim, return_sequences=<span class="literal">True</span>)(x)</span><br><span class="line">    x = layers.Dropout(<span class="number">0.1</span>)(x)</span><br><span class="line">outputs = layers.Dense(vocab_size, activation=<span class="string">&#x27;softmax&#x27;</span>)(x)  <span class="comment"># ❌ 这里做了 softmax</span></span><br><span class="line">model = keras.Model(inputs, outputs)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 损失函数</span></span><br><span class="line">model.<span class="built_in">compile</span>(</span><br><span class="line">    optimizer=<span class="string">&#x27;adam&#x27;</span>,</span><br><span class="line">    loss=keras.losses.SparseCategoricalCrossentropy(from_logits=<span class="literal">True</span>)  <span class="comment"># 内部会做 softmax</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p><strong>问题就在这里：</strong></p>
+<ul>
+<li>输出层使用了 <code>activation=&#39;softmax&#39;</code>，对 logits 做了一次 softmax</li>
+<li>损失函数设置了 <code>from_logits=True</code>，会在内部<strong>再做一次 softmax</strong></li>
+</ul>
+<p>相当于对 logits 连续应用了两次 softmax！</p>
+<blockquote>
+<p>这次踩坑其实有个特殊的背景。我正在做一个可插拔的深度学习框架：训练流程（包括 loss 函数的选择）是统一固定的，而模型结构则分散在不同的模块里。框架同时支持 RNN 和 Transformer，Transformer 的模型写对了，但写 RNN 模块的时候，没注意到框架内部已经配置了 <code>from_logits=True</code>，顺手就加了 softmax。正是这种训练和模型分离的架构，让这个问题藏得更深。</p>
+</blockquote>
+<h2 id="数学分析"><a href="#数学分析" class="headerlink" title="数学分析"></a>数学分析</h2><p>softmax 公式：</p>
+<p>$$\text{softmax}(z_i) = \frac{e^{z_i}}{\sum_{j=1}^n e^{z_j}}$$</p>
+<p>softmax 的作用是将任意实数转换为概率分布。但问题是：<strong>如果对已经是概率的值再做 softmax，会发生什么？</strong></p>
+<h3 id="错误推导的修正"><a href="#错误推导的修正" class="headerlink" title="错误推导的修正"></a>错误推导的修正</h3><p>假设我们有两个 logits $a$ 和 $b$，且 $b &gt; a$。</p>
+<p><strong>第一次 softmax</strong>（在模型输出层）：<br>$$p_a = \frac{e^a}{e^a + e^b}, \quad p_b = \frac{e^b}{e^a + e^b}$$</p>
+<p>比值：$\frac{p_b}{p_a} = e^{b-a}$  b/a  e^{b-a}</p>
+<p><strong>第二次 softmax</strong>（在损失函数内部，因为 <code>from_logits=True</code>）：<br>输入已经是概率 $p_a, p_b$，但损失函数会将其当作 logits 处理：</p>
+<p>$$q_a = \frac{e^{p_a}}{e^{p_a} + e^{p_b}}, \quad q_b = \frac{e^{p_b}}{e^{p_a} + e^{p_b}}$$</p>
+<p>新的比值：$\frac{q_b}{q_a} = e^{p_b - p_a}$</p>
+<p><strong>关键问题</strong>：这里的 $p_b - p_a$ 虽然小于 $b - a$，但由于 $e^x$ 是凸函数，当 $p_b$ 接近 1、$p_a$ 接近 0 时，$e^{p_b} \gg e^{p_a}$，导致 $q_b$ 远大于 $q_a$。</p>
+<p>举个例子，设原始 logits 为 $a=0, b=3$：</p>
+<ul>
+<li>第一次 softmax：$p_a \approx 0.047, p_b \approx 0.953$</li>
+<li>第二次 softmax：$q_a = \frac{e^{0.047}}{e^{0.047} + e^{0.953}} \approx 0.29, q_b \approx 0.71$</li>
+</ul>
+<p>等等，这样看差距反而缩小了？这不对…</p>
+<h3 id="真正的问题：训练过程的累积效应"><a href="#真正的问题：训练过程的累积效应" class="headerlink" title="真正的问题：训练过程的累积效应"></a>真正的问题：训练过程的累积效应</h3><p>实际上，单次前向传播的两次 softmax 虽然会改变分布，但不会直接导致极端尖锐。真正的问题是<strong>在训练过程中</strong>，这种错误的梯度计算会让模型学习错误的特征：</p>
+<ol>
+<li><strong>梯度消失</strong>：当分布过于尖锐时，softmax 的梯度 $\frac{\partial L}{\partial z_i} = p_i - y_i$ 几乎为 0（因为 $p_i$ 接近 1 或 0）</li>
+<li><strong>模型退化</strong>：模型学会了输出极端概率，而不是学习真正的特征</li>
+<li><strong>生成时的恶性循环</strong>：训练好的模型输出概率本身就极端，即使没有第二次 softmax，采样时也会一直重复</li>
+</ol>
+<p><strong>更直观的理解</strong>：<code>SparseCategoricalCrossentropy(from_logits=True)</code> 期望输入是任意实数（logits），它会内部做 softmax 然后取 log。如果你输入的是已经 softmax 后的概率（范围 0-1），相当于把这些概率当成了 logits。比如概率 0.9 被当成 logits 0.9，这比真正的 logits（可能是 2.2）小得多，经过指数放大后，相对关系会被严重扭曲。</p>
+<p>这就是为什么实践中会看到生成重复——模型实际上没有正确训练，只是记住了某些模式的极端输出。</p>
+<h2 id="为什么要用-from-logits？"><a href="#为什么要用-from-logits？" class="headerlink" title="为什么要用 from_logits？"></a>为什么要用 from_logits？</h2><p>你可能会问：既然容易出错，为什么还要用 <code>from_logits=True</code>？</p>
+<p><strong>答案：温度采样（Temperature Sampling）。</strong></p>
+<p>在生成文本时，我们需要控制随机性。温度参数 $T$ 可以调节 softmax 的”尖锐”程度：</p>
+<p>$$P(x_i) = \frac{e^{z_i/T}}{\sum_j e^{z_j/T}}$$</p>
+<ul>
+<li>$T &lt; 1$：分布更尖锐，生成更确定</li>
+<li>$T &gt; 1$：分布更平缓，生成更随机</li>
+<li>$T = 0$：退化为贪婪解码（总是选概率最大的）</li>
+</ul>
+<p>如果模型输出的是概率而不是 logits，我们就无法直接应用温度参数。只有保留 logits，才能在采样时灵活调整温度：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">random_sample</span>(<span class="params">preds, temperature=<span class="number">1.0</span></span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    preds: 模型输出的 logits，shape 为 (vocab_size,)</span></span><br><span class="line"><span class="string">    temperature: 温度参数</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    preds = preds / temperature</span><br><span class="line">    <span class="keyword">return</span> keras.random.categorical(preds[<span class="literal">None</span>, :], num_samples=<span class="number">1</span>)[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成时调整温度</span></span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(max_length):</span><br><span class="line">    logits = model.predict(current_input)[<span class="number">0</span>, -<span class="number">1</span>, :]  <span class="comment"># 取最后一个位置的 logits</span></span><br><span class="line">    next_token = random_sample(logits, temperature=<span class="number">0.8</span>)</span><br><span class="line">    generated.append(next_token)</span><br><span class="line">    current_input = np.array([[next_token]])</span><br></pre></td></tr></table></figure>
+
+<p>看到没有？<code>preds / temperature</code> 这个操作只能在 logits 上进行。如果模型输出的是概率，你就没法用温度参数了。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这个坑的根源是对训练流程的部分细节不够敏感：</p>
+<ol>
+<li><strong><code>from_logits=True</code></strong> 表示损失函数会内部计算 softmax，<strong>不要</strong>在输出层再加 softmax</li>
+<li><strong>保留 logits</strong> 是为了生成阶段能够进行温度采样等灵活控制</li>
+<li><strong>两次 softmax</strong> 会让概率分布极度尖锐，导致生成重复</li>
+</ol>
+<p>正确的姿势：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ✅ 正确的模型定义</span></span><br><span class="line">inputs = keras.Input(shape=(<span class="literal">None</span>,), dtype=<span class="string">&quot;int32&quot;</span>)</span><br><span class="line">x = layers.Embedding(input_dim=vocab_size, output_dim=embedding_dim)(inputs)</span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(num_layers):</span><br><span class="line">    x = layers.GRU(hidden_dim, return_sequences=<span class="literal">True</span>)(x)</span><br><span class="line">    x = layers.Dropout(<span class="number">0.1</span>)(x)</span><br><span class="line">outputs = layers.Dense(vocab_size)(x)  <span class="comment"># 直接返回 logits，不要 softmax</span></span><br><span class="line">model = keras.Model(inputs, outputs)</span><br><span class="line"></span><br><span class="line"><span class="comment"># ✅ 正确的训练</span></span><br><span class="line">model.<span class="built_in">compile</span>(</span><br><span class="line">    optimizer=<span class="string">&#x27;adam&#x27;</span>,</span><br><span class="line">    loss=keras.losses.SparseCategoricalCrossentropy(from_logits=<span class="literal">True</span>)</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># ✅ 正确的生成（带温度采样）</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">random_sample</span>(<span class="params">preds, temperature=<span class="number">1.0</span></span>):</span></span><br><span class="line">    preds = preds / temperature</span><br><span class="line">    <span class="keyword">return</span> keras.random.categorical(preds[<span class="literal">None</span>, :], num_samples=<span class="number">1</span>)[<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
+
+<p>调试深度学习模型时，这种”双重计算”的问题往往很隐蔽。建议在定义模型时，明确区分训练阶段（需要 <code>from_logits</code>）和生成阶段（需要 logits 进行采样），保持接口的一致性。</p>
+<p>希望这篇文章能帮到你，避免在这个问题上浪费时间。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Keras/" rel="tag"># Keras</a>
+              <a href="/tags/TensorFlow/" rel="tag"># TensorFlow</a>
+              <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag"># 深度学习</a>
+              <a href="/tags/RNN/" rel="tag"># RNN</a>
+              <a href="/tags/%E8%B0%83%E8%AF%95/" rel="tag"># 调试</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/03/14/tensorflow-dataset-closure-trap/" rel="prev" title="TensorFlow Dataset from_generator 的闭包陷阱">
+                  <i class="fa fa-chevron-left"></i> TensorFlow Dataset from_generator 的闭包陷阱
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/04/10/rnn-timeseries-data-window/" rel="next" title="RNN 时间序列预测里，数据窗口到底该怎么做？">
+                  RNN 时间序列预测里，数据窗口到底该怎么做？ <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Yet Run</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"yetrun","repo":"yetrun.github.io","client_id":"a386f9dc0f5fe109f2d1","client_secret":"e2a830c7febee5b141b227032f95161f738be604","admin_user":"yetrun","distraction_free_mode":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","js":{"url":"https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.min.js","integrity":"sha256-Pmj85ojLaPOWwRtlMJwmezB/Qg8BzvJp5eTzvXaYAfA="},"path_md5":"7aa987d6a5bd2113ebeaf7e271a73523"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>

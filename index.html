@@ -116,12 +116,12 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-count">22</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-count">21</span>
         <span class="site-state-item-name">标签</span>
       </div>
   </nav>
@@ -151,6 +151,151 @@
 
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://yet.run/2026/04/10/rnn-timeseries-data-window/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yet Run">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yet Run 的小站">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/04/10/rnn-timeseries-data-window/" class="post-title-link" itemprop="url">RNN 时间序列预测里，数据窗口到底该怎么做？</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-04-10 20:30:00 / 修改时间：19:32:33" itemprop="dateCreated datePublished" datetime="2026-04-10T20:30:00+08:00">2026-04-10</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>最近在看《Hands-On Machine Learning with Scikit-Learn, Keras &amp; TensorFlow》里关于 RNN 做时间序列预测的内容。我本来以为重点会落在 <code>SimpleRNN</code> 本身，结果实际做下来才发现，真正麻烦的地方往往不是模型，而是<strong>怎么把时间序列整理成监督学习的数据集</strong>。</p>
+<p>这篇文章我就专门梳理这个问题：当我们要用过去 56 天的数据预测未来的地铁客流时，数据窗口到底应该怎么切？</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/04/10/rnn-timeseries-data-window/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="https://yet.run/2026/03/21/rnn-softmax-from-logits-trap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Yet Run">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Yet Run 的小站">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/03/21/rnn-softmax-from-logits-trap/" class="post-title-link" itemprop="url">RNN 生成重复的坑：softmax 与 from_logits 的陷阱</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-03-21 20:00:00 / 修改时间：16:48:30" itemprop="dateCreated datePublished" datetime="2026-03-21T20:00:00+08:00">2026-03-21</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>在做 RNN 模型生成任务时，我遇到了一个诡异的问题：模型总是生成重复的字符或词汇。排查了很久才发现，原来是** softmax 被调用了两次**。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/03/21/rnn-softmax-from-logits-trap/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -791,176 +936,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://yet.run/2023/07/09/vue-3-watch-route/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yet Run">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yet Run 的小站">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/07/09/vue-3-watch-route/" class="post-title-link" itemprop="url">Vue 3 避坑指南（一）：避免使用 watch(route)</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-07-09 10:43:58" itemprop="dateCreated datePublished" datetime="2023-07-09T10:43:58+08:00">2023-07-09</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2023-08-13 14:58:19" itemprop="dateModified" datetime="2023-08-13T14:58:19+08:00">2023-08-13</time>
-      </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>当组件需要响应路由更新的时候，有人提到可以用 <code>watch(route)</code> 方法。这个方法可以监听路由的一切变化。比如，对于一个文章组件，我们可以通过监听路由来达到重新获取文章的目的：</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 监听路由的变化。当我们的路由从 `/articles/1` 跳转到 `/articles/2` 时，下面的执行逻辑是正确的。</span></span><br><span class="line">watch(route, <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> articleId = route.params.id</span><br><span class="line">  article.value = <span class="keyword">await</span> fetchArticle(articleId)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<p>但是，请千万别这么用。此时组件不仅监听了当前组件路由的变化，也监听了别的组件的路由变化。当路由跳转到不属于当前组件的路由时，上述 <code>watch</code> 响应<em>可能</em>会触发，从而导致错误的执行逻辑：</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">watch(route, <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="comment">// 如果跳转到别的路由，比如跳转到 `/users/1`，此时获取到的 articleId 是错误的。</span></span><br><span class="line">  <span class="keyword">const</span> articleId = route.params.id</span><br><span class="line">  article.value = <span class="keyword">await</span> fetchArticle(articleId)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
-
-<p>所以，请<strong>避免使用 <code>watch(route)</code>，因为它可能会监听到不属于自身的路由变化</strong>。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2023/07/09/vue-3-watch-route/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="https://yet.run/2023/04/04/meta-api-rails-plugin/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Yet Run">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Yet Run 的小站">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2023/04/04/meta-api-rails-plugin/" class="post-title-link" itemprop="url">为 Rails 应用添加参数验证、返回值渲染和生成 Swagger 文档的能力</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2023-04-04 13:22:18" itemprop="dateCreated datePublished" datetime="2023-04-04T13:22:18+08:00">2023-04-04</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2023-08-13 14:58:19" itemprop="dateModified" datetime="2023-08-13T14:58:19+08:00">2023-08-13</time>
-      </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <p>现实中为 Rails 添加参数验证的 Gems 很多，添加 Swagger 文档生成的也不少，但能够同时支持参数验证、返回值渲染和 Swagger 文档生成的少之又少，而且将这些能力紧密结合在一起的就几乎没有了。</p>
-<p>大家伙在团队开发中，是否会有过这些困惑：</p>
-<ul>
-<li>缺少一个比较详细的 API 文档，有些甚至没有文档。</li>
-<li>文档和实现往往不一致，明明文档中说有这个字段，结果在实际调用时发现没有这个字段，或者反之。</li>
-<li>文档很难实现规约，比如参数集的字段与返回值的字段需要区分开来，以及不同场景下返回值的字段也应有所区分。所以，现实中往往只能抛出一个大而全的字段表放在 API 文档中。</li>
-</ul>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2023/04/04/meta-api-rails-plugin/#more" rel="contents">
-                阅读全文 &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 </div>
