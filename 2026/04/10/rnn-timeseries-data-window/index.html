@@ -28,7 +28,7 @@
 <meta property="og:description" content="最近在看《Hands-On Machine Learning with Scikit-Learn, Keras &amp; TensorFlow》里关于 RNN 做时间序列预测的内容。我本来以为重点会落在 SimpleRNN 本身，结果实际做下来才发现，真正麻烦的地方往往不是模型，而是怎么把时间序列整理成监督学习的数据集。 这篇文章我就专门梳理这个问题：当我们要用过去 56 天的数据预测未来的地铁">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-04-10T12:30:00.000Z">
-<meta property="article:modified_time" content="2026-04-10T11:32:33.260Z">
+<meta property="article:modified_time" content="2026-04-10T12:22:12.091Z">
 <meta property="article:author" content="Yet Run">
 <meta property="article:tag" content="Keras">
 <meta property="article:tag" content="TensorFlow">
@@ -196,7 +196,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2026-04-10 20:30:00 / 修改时间：19:32:33" itemprop="dateCreated datePublished" datetime="2026-04-10T20:30:00+08:00">2026-04-10</time>
+      <time title="创建时间：2026-04-10 20:30:00 / 修改时间：20:22:12" itemprop="dateCreated datePublished" datetime="2026-04-10T20:30:00+08:00">2026-04-10</time>
     </span>
 
   
@@ -221,7 +221,7 @@
 <p>它们都能做滑动窗口，但思路并不一样。</p>
 <p><code>timeseries_dataset_from_array()</code> 更像一个高层封装。你给它数组，它就帮你把数组切成一段段时间序列，再和目标值配起来。对于单步预测或者结构比较规则的任务，它非常顺手。</p>
 <p><code>window()</code> 则更底层一点。它不是直接吐出 Tensor，而是先吐出一个“数据集的集合”，也就是 nested dataset。所以后面通常还要接一个 <code>flat_map()</code>，把窗口重新拍平成普通的数据集。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"></span><br><span class="line">dataset = tf.data.Dataset.<span class="built_in">range</span>(<span class="number">6</span>).window(<span class="number">4</span>, shift=<span class="number">1</span>, drop_remainder=<span class="literal">True</span>)</span><br><span class="line">dataset = dataset.flat_map(<span class="keyword">lambda</span> window_ds: window_ds.batch(<span class="number">4</span>))</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> window_tensor <span class="keyword">in</span> dataset:</span><br><span class="line">    <span class="built_in">print</span>(window_tensor)</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line"></span><br><span class="line">dataset = tf.data.Dataset.<span class="built_in">range</span>(<span class="number">6</span>).window(<span class="number">4</span>, shift=<span class="number">1</span>, drop_remainder=<span class="literal">True</span>)</span><br><span class="line">dataset = dataset.flat_map(<span class="keyword">lambda</span> window_ds: window_ds.batch(<span class="number">4</span>))</span><br></pre></td></tr></table></figure>
 
 <p>为了少写一点样板代码，我后面统一用了一个小工具函数：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">to_window</span>(<span class="params">dataset, length</span>):</span></span><br><span class="line">    dataset = dataset.window(length, shift=<span class="number">1</span>, drop_remainder=<span class="literal">True</span>)</span><br><span class="line">    <span class="keyword">return</span> dataset.flat_map(<span class="keyword">lambda</span> window_ds: window_ds.batch(length))</span><br></pre></td></tr></table></figure>
@@ -237,7 +237,15 @@
 </ul>
 <p>如果把 2019 年春季那段数据画出来，会比较明显地看到 7 天左右的周期性。也正因为这样，一个非常自然的基线模型就是：<strong>直接拿 7 天前的值作为今天的预测</strong>。</p>
 <p>这个基线虽然简单，但很有意义。因为它提醒我一件事：时间序列建模别一上来就盯着网络深度，先看看序列本身有没有周期性，很多时候已经能解释一大半现象。</p>
-<h2 id="三、四种任务，数据集到底怎么做"><a href="#三、四种任务，数据集到底怎么做" class="headerlink" title="三、四种任务，数据集到底怎么做"></a>三、四种任务，数据集到底怎么做</h2><p>这篇文章里，重点不是比较哪种模型最终效果最好，而是梳理四种常见任务的数据形状：</p>
+<h2 id="三、四种任务，数据集到底怎么做"><a href="#三、四种任务，数据集到底怎么做" class="headerlink" title="三、四种任务，数据集到底怎么做"></a>三、四种任务，数据集到底怎么做</h2><p>这篇文章里，重点不是比较哪种模型最终效果最好，而是梳理四种常见任务的数据形状。</p>
+<p>这里先提前说一下：下面反复出现的 <code>(batch, 56, 5)</code> 里面，最后那个 <code>5</code> 指的是<strong>每个时间步有 5 个特征</strong>。这 5 个特征分别是：</p>
+<ul>
+<li>公交乘客量</li>
+<li>地铁乘客量</li>
+<li>下一天日期类型的 one-hot 编码，共 3 维</li>
+</ul>
+<p>所以 <code>5 = 2 + 3</code>。先把这件事说清楚，后面看到这些 shape 就不会觉得那个 <code>5</code> 来得很突然了。</p>
+<p>四种任务分别是：</p>
 <ul>
 <li>单变量单步预测：<code>(batch, 56, 1) -&gt; (batch,)</code></li>
 <li>多变量单步预测：<code>(batch, 56, 5) -&gt; (batch,)</code></li>
@@ -257,12 +265,7 @@
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">sequence_length = <span class="number">56</span></span><br><span class="line"></span><br><span class="line">rails_train_ds = keras.utils.timeseries_dataset_from_array(</span><br><span class="line">    rail_train.to_numpy(),</span><br><span class="line">    targets=rail_train[sequence_length:],</span><br><span class="line">    sequence_length=sequence_length,</span><br><span class="line">    batch_size=<span class="number">32</span>,</span><br><span class="line">    shuffle=<span class="literal">True</span>,</span><br><span class="line">    seed=<span class="number">42</span>,</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
 
 <p>这种写法理解起来也很直接：拿长度为 56 的窗口做输入，再拿紧接着的下一个标量做目标。只是写文章时最好把“数据集打印出来的 shape”和“RNN 理解它时的 shape”区分开，这样不容易绕晕。</p>
-<h3 id="2、多变量单步预测"><a href="#2、多变量单步预测" class="headerlink" title="2、多变量单步预测"></a>2、多变量单步预测</h3><p>这次输入序列里，每个时间步不再只有一个数，而是一个五维向量：</p>
-<ul>
-<li>公交乘客量</li>
-<li>地铁乘客量</li>
-<li>下一天日期类型的 one-hot 编码，共 3 维</li>
-</ul>
+<h3 id="2、多变量单步预测"><a href="#2、多变量单步预测" class="headerlink" title="2、多变量单步预测"></a>2、多变量单步预测</h3><p>这次输入序列里，每个时间步不再只有一个数，而是一个五维向量，也就是前面说的那 5 个特征：</p>
 <p>所以输入输出形状会变成：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(batch, <span class="number">56</span>, <span class="number">5</span>) -&gt; (batch,)</span><br></pre></td></tr></table></figure>
 
