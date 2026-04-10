@@ -28,7 +28,7 @@
 <meta property="og:description" content="最近在看《Hands-On Machine Learning with Scikit-Learn, Keras &amp; TensorFlow》里关于 RNN 做时间序列预测的内容。我本来以为重点会落在 SimpleRNN 本身，结果实际做下来才发现，真正麻烦的地方往往不是模型，而是怎么把时间序列整理成监督学习的数据集。 这篇文章我就专门梳理这个问题：当我们要用过去 56 天的数据预测未来的地铁">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-04-10T12:30:00.000Z">
-<meta property="article:modified_time" content="2026-04-10T12:22:12.091Z">
+<meta property="article:modified_time" content="2026-04-10T12:25:05.658Z">
 <meta property="article:author" content="Yet Run">
 <meta property="article:tag" content="Keras">
 <meta property="article:tag" content="TensorFlow">
@@ -196,7 +196,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2026-04-10 20:30:00 / 修改时间：20:22:12" itemprop="dateCreated datePublished" datetime="2026-04-10T20:30:00+08:00">2026-04-10</time>
+      <time title="创建时间：2026-04-10 20:30:00 / 修改时间：20:25:05" itemprop="dateCreated datePublished" datetime="2026-04-10T20:30:00+08:00">2026-04-10</time>
     </span>
 
   
@@ -257,8 +257,8 @@
 <p>训练数据集直接打印出来时，输入输出形状是：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(batch, <span class="number">56</span>) -&gt; (batch,)</span><br></pre></td></tr></table></figure>
 
-<p>这也是 notebook 里实际检查出来的 shape。</p>
-<p>不过从 RNN 的语义上看，这仍然是一条单变量序列，也就是每个时间步只有 1 个特征，因此可以理解为：</p>
+<p>这里直接看到的输入就是一个长度为 56 的序列，目标则是后面的那个标量。</p>
+<p>不过从 RNN 的语义上看，这仍然是一条单变量序列，也就是每个时间步只有 1 个特征，因此也可以理解为：</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(batch, <span class="number">56</span>, <span class="number">1</span>) -&gt; (batch, <span class="number">1</span>)</span><br></pre></td></tr></table></figure>
 
 <p>我一开始也以为这里会报 shape 不匹配，但实际复现后发现，在我这份 notebook 使用的 TensorFlow / Keras 版本里，二维输入 <code>(batch, 56)</code> 可以被单变量 <code>SimpleRNN</code> 正常接受。换句话说，它会按“每个时间步只有一个特征”的方式来处理这份数据。</p>
